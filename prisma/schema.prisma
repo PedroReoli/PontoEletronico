@@ -63,33 +63,34 @@ model Company {
   updatedAt DateTime @updatedAt
 
   // Relacionamentos
-  users User[]
+  users          User[]
+  scheduleGroups ScheduleGroup[] // Adicionando a relação inversa aqui
 
   @@map("companies")
 }
 
 // Modelo de Usuário
 model User {
-  id        String    @id @default(uuid())
+  id        String   @id @default(uuid())
   name      String
-  email     String    @unique
+  email     String   @unique
   password  String
-  role      UserRole  @default(EMPLOYEE)
-  active    Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  
+  role      UserRole @default(EMPLOYEE)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relacionamentos
-  company             Company            @relation(fields: [companyId], references: [id])
-  companyId           String
-  scheduleGroup       ScheduleGroup?     @relation(fields: [scheduleGroupId], references: [id])
-  scheduleGroupId     String?
-  customSchedule      CustomSchedule?
-  punchRecords        PunchRecord[]
-  shifts              Shift[]
-  adjustmentRequests  AdjustmentRequest[]
-  reports             Report[]
-  auditLogs           AuditLog[]
+  company            Company             @relation(fields: [companyId], references: [id])
+  companyId          String
+  scheduleGroup      ScheduleGroup?      @relation(fields: [scheduleGroupId], references: [id])
+  scheduleGroupId    String?
+  customSchedule     CustomSchedule?
+  punchRecords       PunchRecord[]
+  shifts             Shift[]
+  adjustmentRequests AdjustmentRequest[]
+  reports            Report[]
+  auditLogs          AuditLog[]
 
   @@map("users")
 }
@@ -98,16 +99,16 @@ model User {
 model ScheduleGroup {
   id            String   @id @default(uuid())
   name          String
-  entryTime     String   // Formato HH:MM
-  exitTime      String   // Formato HH:MM
-  breakDuration Int      // Duração em minutos
+  entryTime     String // Formato HH:MM
+  exitTime      String // Formato HH:MM
+  breakDuration Int // Duração em minutos
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  
+
   // Relacionamentos
-  users User[]
-  company       Company  @relation(fields: [companyId], references: [id])
-  companyId     String
+  users     User[]
+  company   Company @relation(fields: [companyId], references: [id])
+  companyId String
 
   @@map("schedule_groups")
 }
@@ -115,32 +116,32 @@ model ScheduleGroup {
 // Modelo de Jornada Personalizada
 model CustomSchedule {
   id            String   @id @default(uuid())
-  entryTime     String   // Formato HH:MM
-  exitTime      String   // Formato HH:MM
-  breakDuration Int      // Duração em minutos
+  entryTime     String // Formato HH:MM
+  exitTime      String // Formato HH:MM
+  breakDuration Int // Duração em minutos
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  
+
   // Relacionamentos
-  user          User     @relation(fields: [userId], references: [id])
-  userId        String   @unique
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
 
   @@map("custom_schedules")
 }
 
 // Modelo de Registro de Ponto
 model PunchRecord {
-  id        String    @id @default(uuid())
-  timestamp DateTime
-  type      PunchType
-  latitude  Float?
-  longitude Float?
+  id         String    @id @default(uuid())
+  timestamp  DateTime
+  type       PunchType
+  latitude   Float?
+  longitude  Float?
   deviceInfo String?
-  createdAt DateTime  @default(now())
-  
+  createdAt  DateTime  @default(now())
+
   // Relacionamentos
-  user      User      @relation(fields: [userId], references: [id])
-  userId    String
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
 
   @@map("punch_records")
 }
@@ -150,15 +151,15 @@ model Shift {
   id        String    @id @default(uuid())
   date      DateTime
   shiftType ShiftType
-  startTime String    // Formato HH:MM
-  endTime   String    // Formato HH:MM
+  startTime String // Formato HH:MM
+  endTime   String // Formato HH:MM
   notes     String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  
+
   // Relacionamentos
-  user      User      @relation(fields: [userId], references: [id])
-  userId    String
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
 
   @@map("shifts")
 }
@@ -172,14 +173,14 @@ model AdjustmentRequest {
   status    RequestStatus @default(PENDING)
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
-  
+
   // Relacionamentos
-  user      User          @relation(fields: [userId], references: [id])
-  userId    String
-  
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
   // Campos adicionais para aprovação/rejeição
-  reviewedBy String?
-  reviewedAt DateTime?
+  reviewedBy  String?
+  reviewedAt  DateTime?
   reviewNotes String?
 
   @@map("adjustment_requests")
@@ -191,12 +192,12 @@ model Report {
   pdfUrl    String
   startDate DateTime
   endDate   DateTime
-  type      String   // Tipo de relatório (mensal, semanal, etc.)
+  type      String // Tipo de relatório (mensal, semanal, etc.)
   createdAt DateTime @default(now())
-  
+
   // Relacionamentos
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
 
   @@map("reports")
 }
@@ -205,14 +206,13 @@ model Report {
 model AuditLog {
   id         String     @id @default(uuid())
   actionType ActionType
-  metadata   Json       // Dados adicionais sobre a ação
+  metadata   Json // Dados adicionais sobre a ação
   ipAddress  String?
   createdAt  DateTime   @default(now())
-  
+
   // Relacionamentos
-  user       User       @relation(fields: [userId], references: [id])
-  userId     String
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
 
   @@map("audit_logs")
 }
-

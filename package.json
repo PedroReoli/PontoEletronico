@@ -34,6 +34,7 @@
     "react-email": "^2.0.0",
     "react-hook-form": "^7.50.1",
     "react-hot-toast": "^2.4.1",
+    "react-icons": "^5.5.0",
     "react-router-dom": "^6.22.1",
     "react-select": "^5.8.0",
     "react-table": "^7.8.0",
@@ -72,4 +73,3 @@
     "seed": "ts-node --transpile-only prisma/seed.ts"
   }
 }
-

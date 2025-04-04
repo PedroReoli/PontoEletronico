@@ -46,7 +46,7 @@ const baseConfig = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [], // Removido o plugin tailwindcss-animate
 }
 
 module.exports = {
@@ -125,6 +125,6 @@ module.exports = {
       },
     },
   },
-  plugins: [...baseConfig.plugins],
+  plugins: [], // Removido o plugin tailwindcss-animate
 }
 
