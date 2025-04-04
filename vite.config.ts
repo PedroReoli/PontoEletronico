@@ -22,6 +22,7 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    // Removemos o proxy, pois a API estará na mesma porta
   },
 })
 

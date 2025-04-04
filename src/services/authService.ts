@@ -1,4 +1,4 @@
-import type { User } from "@prisma/client"
+import type { User } from "@/types/database"
 import { api } from "./api"
 
 interface AuthResponse {
@@ -9,7 +9,7 @@ interface AuthResponse {
 
 export const login = async (email: string, password: string): Promise<AuthResponse> => {
   try {
-    const response = await api.post("/auth/login", { email, password })
+    const response = await api.post("/api/auth/login", { email, password })
     return response.data
   } catch (error: any) {
     if (error.response) {
@@ -21,7 +21,7 @@ export const login = async (email: string, password: string): Promise<AuthRespon
 
 export const register = async (name: string, email: string, password: string): Promise<AuthResponse> => {
   try {
-    const response = await api.post("/auth/register", { name, email, password })
+    const response = await api.post("/api/auth/register", { name, email, password })
     return response.data
   } catch (error: any) {
     if (error.response) {
@@ -33,7 +33,7 @@ export const register = async (name: string, email: string, password: string): P
 
 export const logout = async (refreshToken: string): Promise<void> => {
   try {
-    await api.post("/auth/logout", { refreshToken })
+    await api.post("/api/auth/logout", { refreshToken })
   } catch (error) {
     console.error("Erro ao fazer logout:", error)
   }
@@ -41,7 +41,7 @@ export const logout = async (refreshToken: string): Promise<void> => {
 
 export const refreshAccessToken = async (refreshToken: string): Promise<AuthResponse> => {
   try {
-    const response = await api.post("/auth/refresh-token", { refreshToken })
+    const response = await api.post("/api/auth/refresh-token", { refreshToken })
     return response.data
   } catch (error: any) {
     if (error.response) {
@@ -53,7 +53,7 @@ export const refreshAccessToken = async (refreshToken: string): Promise<AuthResp
 
 export const forgotPassword = async (email: string): Promise<void> => {
   try {
-    await api.post("/auth/forgot-password", { email })
+    await api.post("/api/auth/forgot-password", { email })
   } catch (error: any) {
     if (error.response) {
       throw new Error(error.response.data.message || "Falha ao solicitar recuperação de senha")
@@ -64,7 +64,7 @@ export const forgotPassword = async (email: string): Promise<void> => {
 
 export const resetPassword = async (token: string, password: string): Promise<void> => {
   try {
-    await api.post("/auth/reset-password", { token, password })
+    await api.post("/api/auth/reset-password", { token, password })
   } catch (error: any) {
     if (error.response) {
       throw new Error(error.response.data.message || "Falha ao redefinir senha")
