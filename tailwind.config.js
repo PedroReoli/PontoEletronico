@@ -1,7 +1,13 @@
 /** @type {import('tailwindcss').Config} */
-const baseConfig = {
+module.exports = {
   darkMode: ["class"],
-  content: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}", "*.{js,ts,jsx,tsx,mdx}"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    "*.{js,ts,jsx,tsx,mdx}",
+    "app/**/*.{ts,tsx}",
+    "components/**/*.{ts,tsx}",
+  ],
   theme: {
     extend: {
       colors: {
@@ -13,10 +19,14 @@ const baseConfig = {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          light: "#6780fa",
+          dark: "#3046c9",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
+          light: "#ff4d9e",
+          dark: "#d10063",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
@@ -38,93 +48,63 @@ const baseConfig = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        success: "#06d6a0",
+        warning: "#ffd166",
+        danger: "#ef476f",
+        info: "#118ab2",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-      },
-    },
-  },
-  plugins: [], // Removido o plugin tailwindcss-animate
-}
-
-module.exports = {
-  darkMode: baseConfig.darkMode,
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}", "*.{js,ts,jsx,tsx,mdx}", ...baseConfig.content],
-  theme: {
-    ...baseConfig.theme,
-    extend: {
-      ...baseConfig.theme.extend,
-      colors: {
-        ...baseConfig.theme.extend.colors,
-        primary: "var(--color-primary)",
-        "primary-light": "var(--color-primary-light)",
-        "primary-dark": "var(--color-primary-dark)",
-        secondary: "var(--color-secondary)",
-        "secondary-light": "var(--color-secondary-light)",
-        "secondary-dark": "var(--color-secondary-dark)",
-        background: "var(--color-background)",
-        surface: "var(--color-surface)",
-        "surface-variant": "var(--color-surface-variant)",
-        text: "var(--color-text)",
-        "text-light": "var(--color-text-light)",
-        muted: "var(--color-muted)",
-        error: "var(--color-error)",
-        warning: "var(--color-warning)",
-        success: "var(--color-success)",
+        sm: "4px",
+        md: "6px",
+        lg: "8px",
+        xl: "12px",
+        "2xl": "16px",
+        full: "9999px",
       },
       fontFamily: {
-        base: "var(--font-family-base)",
-        heading: "var(--font-family-heading)",
+        sans: ["Inter", "sans-serif"],
       },
       fontSize: {
-        "heading-1": "var(--font-size-heading-1)",
-        "heading-2": "var(--font-size-heading-2)",
-        "heading-3": "var(--font-size-heading-3)",
-        "heading-4": "var(--font-size-heading-4)",
-        "body-1": "var(--font-size-body-1)",
-        "body-2": "var(--font-size-body-2)",
-        small: "var(--font-size-small)",
+        xs: "12px",
+        sm: "14px",
+        base: "16px",
+        lg: "18px",
+        xl: "20px",
+        "2xl": "24px",
+        "3xl": "30px",
+        "4xl": "36px",
       },
-      lineHeight: {
-        tight: "var(--line-height-tight)",
-        normal: "var(--line-height-normal)",
-        relaxed: "var(--line-height-relaxed)",
-      },
-      fontWeight: {
-        light: "var(--font-weight-light)",
-        normal: "var(--font-weight-normal)",
-        medium: "var(--font-weight-medium)",
-        semibold: "var(--font-weight-semibold)",
-        bold: "var(--font-weight-bold)",
-      },
-      borderRadius: {
-        ...baseConfig.theme.extend.borderRadius,
-        sm: "var(--border-radius-sm)",
-        DEFAULT: "var(--border-radius)",
-        md: "var(--border-radius-md)",
-        lg: "var(--border-radius-lg)",
-        xl: "var(--border-radius-xl)",
-        "2xl": "var(--border-radius-2xl)",
-        full: "var(--border-radius-full)",
+      spacing: {
+        1: "4px",
+        2: "8px",
+        3: "12px",
+        4: "16px",
+        5: "20px",
+        6: "24px",
+        8: "32px",
+        10: "40px",
+        12: "48px",
+        16: "64px",
+        20: "80px",
+        24: "96px",
       },
       boxShadow: {
-        sm: "var(--shadow-sm)",
-        DEFAULT: "var(--shadow)",
-        md: "var(--shadow-md)",
-        lg: "var(--shadow-lg)",
-        xl: "var(--shadow-xl)",
+        sm: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+        md: "0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04)",
+        lg: "0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.04)",
+        xl: "0 20px 25px -5px rgba(0, 0, 0, 0.07), 0 10px 10px -5px rgba(0, 0, 0, 0.03)",
+        inner: "inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)",
       },
-      screens: {
-        sm: "var(--breakpoint-sm)",
-        md: "var(--breakpoint-md)",
-        lg: "var(--breakpoint-lg)",
-        xl: "var(--breakpoint-xl)",
-        "2xl": "var(--breakpoint-2xl)",
+      transitionDuration: {
+        fast: "150ms",
+        normal: "300ms",
+        slow: "500ms",
       },
     },
   },
-  plugins: [], // Removido o plugin tailwindcss-animate
+  plugins: [require("tailwindcss-animate")],
 }
 

@@ -10,209 +10,176 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Enum para os tipos de usuário
-enum UserRole {
-  ADMIN
-  MANAGER
-  EMPLOYEE
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(EMPLOYEE)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company   Company @relation(fields: [companyId], references: [id])
+  companyId String
+
+  // Relações
+  timeEntries      TimeEntry[]
+  adjustmentRequests AdjustmentRequest[]
+  managedAdjustments AdjustmentRequest[] @relation("Manager")
+  subordinates     User[]        @relation("ManagerToEmployee")
+  manager          User?         @relation("ManagerToEmployee", fields: [managerId], references: [id])
+  managerId        String?
+
+  shiftGroup       ShiftGroup?   @relation(fields: [shiftGroupId], references: [id])
+  shiftGroupId     String?
+  
+  shiftType        ShiftType?    @relation(fields: [shiftTypeId], references: [id])
+  shiftTypeId      String?
+  
+  // Configurações individuais de jornada (se não usar grupo)
+  startTime        String?       // Formato HH:mm
+  endTime          String?       // Formato HH:mm
+  breakDuration    Int?          // Em minutos
+
+  @@map("users")
 }
 
-// Enum para os tipos de registro de ponto
-enum PunchType {
-  ENTRY
-  EXIT
+enum Role {
+  EMPLOYEE
+  MANAGER
+  ADMIN
+}
+
+model Company {
+  id        String   @id @default(uuid())
+  name      String
+  logoUrl   String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relações
+  users       User[]
+  shiftGroups ShiftGroup[]
+  shiftTypes  ShiftType[]
+
+  @@map("companies")
+}
+
+model ShiftGroup {
+  id            String   @id @default(uuid())
+  name          String
+  startTime     String   // Formato HH:mm
+  endTime       String   // Formato HH:mm
+  breakDuration Int      // Em minutos
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relações
+  company   Company @relation(fields: [companyId], references: [id])
+  companyId String
+  users     User[]
+
+  @@map("shift_groups")
+}
+
+model ShiftType {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relações
+  company   Company @relation(fields: [companyId], references: [id])
+  companyId String
+  users     User[]
+
+  @@map("shift_types")
+}
+
+model TimeEntry {
+  id        String     @id @default(uuid())
+  type      EntryType
+  timestamp DateTime   @default(now())
+  latitude  Float?     // Nova coluna para latitude
+  longitude Float?     // Nova coluna para longitude
+  accuracy  Float?     // Nova coluna para precisão em metros
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relações
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  @@map("time_entries")
+}
+
+enum EntryType {
+  CLOCK_IN
   BREAK_START
   BREAK_END
+  CLOCK_OUT
 }
 
-// Enum para os tipos de plantão
-enum ShiftType {
-  REGULAR
-  NIGHT
-  TWELVE_THIRTY_SIX
-  TWENTY_FOUR_FORTY_EIGHT
-  CUSTOM
+model AdjustmentRequest {
+  id          String            @id @default(uuid())
+  date        DateTime
+  entryType   EntryType
+  requestedTime String          // Formato HH:mm
+  reason      String
+  attachmentUrl String?
+  status      AdjustmentStatus  @default(PENDING)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Relações
+  user        User              @relation(fields: [userId], references: [id])
+  userId      String
+  manager     User?             @relation("Manager", fields: [managerId], references: [id])
+  managerId   String?
+  
+  // Campos para aprovação/rejeição
+  responseComment String?
+  responseDate    DateTime?
+
+  @@map("adjustment_requests")
 }
 
-// Enum para o status das solicitações de ajuste
-enum RequestStatus {
+enum AdjustmentStatus {
   PENDING
   APPROVED
   REJECTED
 }
 
-// Enum para os tipos de ação no log de auditoria
-enum ActionType {
-  CREATE
-  UPDATE
-  DELETE
-  LOGIN
-  LOGOUT
-  PUNCH_RECORD
-  APPROVE_REQUEST
-  REJECT_REQUEST
-  GENERATE_REPORT
-}
-
-// Modelo de Empresa
-model Company {
-  id        String   @id @default(uuid())
-  name      String
-  logoUrl   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relacionamentos
-  users          User[]
-  scheduleGroups ScheduleGroup[] // Adicionando a relação inversa aqui
-
-  @@map("companies")
-}
-
-// Modelo de Usuário
-model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      UserRole @default(EMPLOYEE)
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relacionamentos
-  company            Company             @relation(fields: [companyId], references: [id])
-  companyId          String
-  scheduleGroup      ScheduleGroup?      @relation(fields: [scheduleGroupId], references: [id])
-  scheduleGroupId    String?
-  customSchedule     CustomSchedule?
-  punchRecords       PunchRecord[]
-  shifts             Shift[]
-  adjustmentRequests AdjustmentRequest[]
-  reports            Report[]
-  auditLogs          AuditLog[]
-
-  @@map("users")
-}
-
-// Modelo de Grupo de Jornada
-model ScheduleGroup {
-  id            String   @id @default(uuid())
-  name          String
-  entryTime     String // Formato HH:MM
-  exitTime      String // Formato HH:MM
-  breakDuration Int // Duração em minutos
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // Relacionamentos
-  users     User[]
-  company   Company @relation(fields: [companyId], references: [id])
-  companyId String
-
-  @@map("schedule_groups")
-}
-
-// Modelo de Jornada Personalizada
-model CustomSchedule {
-  id            String   @id @default(uuid())
-  entryTime     String // Formato HH:MM
-  exitTime      String // Formato HH:MM
-  breakDuration Int // Duração em minutos
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // Relacionamentos
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @unique
-
-  @@map("custom_schedules")
-}
-
-// Modelo de Registro de Ponto
-model PunchRecord {
-  id         String    @id @default(uuid())
-  timestamp  DateTime
-  type       PunchType
-  latitude   Float?
-  longitude  Float?
-  deviceInfo String?
-  createdAt  DateTime  @default(now())
-
-  // Relacionamentos
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
-
-  @@map("punch_records")
-}
-
-// Modelo de Plantão
-model Shift {
-  id        String    @id @default(uuid())
-  date      DateTime
-  shiftType ShiftType
-  startTime String // Formato HH:MM
-  endTime   String // Formato HH:MM
-  notes     String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  // Relacionamentos
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
-
-  @@map("shifts")
-}
-
-// Modelo de Solicitação de Ajuste
-model AdjustmentRequest {
-  id        String        @id @default(uuid())
-  date      DateTime
-  reason    String
-  fileUrl   String?
-  status    RequestStatus @default(PENDING)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-
-  // Relacionamentos
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
-
-  // Campos adicionais para aprovação/rejeição
-  reviewedBy  String?
-  reviewedAt  DateTime?
-  reviewNotes String?
-
-  @@map("adjustment_requests")
-}
-
-// Modelo de Relatório
 model Report {
   id        String   @id @default(uuid())
-  pdfUrl    String
-  startDate DateTime
-  endDate   DateTime
-  type      String // Tipo de relatório (mensal, semanal, etc.)
+  month     Int
+  year      Int
+  fileUrl   String
+  accessedAt DateTime?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  // Relacionamentos
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
+  // Relações
+  userId    String
 
   @@map("reports")
 }
 
-// Modelo de Log de Auditoria
 model AuditLog {
-  id         String     @id @default(uuid())
-  actionType ActionType
-  metadata   Json // Dados adicionais sobre a ação
-  ipAddress  String?
-  createdAt  DateTime   @default(now())
-
-  // Relacionamentos
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
+  id        String    @id @default(uuid())
+  action    String
+  entityType String
+  entityId  String?
+  details   String?
+  ipAddress String?
+  createdAt DateTime  @default(now())
+  
+  // Relações
+  userId    String
 
   @@map("audit_logs")
 }
+
