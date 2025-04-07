@@ -7,7 +7,8 @@ import api from "../services/api"
 import { useAuth } from "../hooks/useAuth"
 import { useGeolocation } from "../hooks/useGeolocation"
 import Layout from "../components/Layout"
-import "../styles/pages/EmployeeDashboard.css"
+// Remover esta linha
+// import "../styles/pages/EmployeeDashboard.css"
 
 interface TimeEntry {
   id: string
@@ -20,7 +21,7 @@ interface TimeEntry {
 }
 
 function EmployeeDashboard() {
-  const { user } = useAuth()
+  const {} = useAuth() // Removendo user não utilizado
   const [loading, setLoading] = useState(true)
   const [todayEntries, setTodayEntries] = useState<TimeEntry[]>([])
   const [lastEntry, setLastEntry] = useState<TimeEntry | null>(null)

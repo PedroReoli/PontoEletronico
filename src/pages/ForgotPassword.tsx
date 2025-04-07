@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react"
 import { Link } from "react-router-dom"
 import api from "../services/api"
+// import "../styles/pages/Auth.css" // Removed import
 
 function ForgotPassword() {
   const [email, setEmail] = useState("")

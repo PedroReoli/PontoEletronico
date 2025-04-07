@@ -107,4 +107,3 @@
    - Relações:
      - Associado a um User (userId)
 
-### Diagrama de Relações

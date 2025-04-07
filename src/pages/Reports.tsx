@@ -21,7 +21,7 @@ interface TimeEntryReport {
 }
 
 function Reports() {
-  const { user } = useAuth()
+  const {} = useAuth() // Removendo user não utilizado
   const [loading, setLoading] = useState(true)
   const [reports, setReports] = useState<TimeEntryReport[]>([])
   const [month, setMonth] = useState(new Date().getMonth() + 1)

@@ -148,8 +148,14 @@ function CompanyManagement() {
     try {
       await api.delete(`/admin/companies/${id}`)
       setCompanies(companies.filter((company) => company.id !== id))
-    } catch (error) {
-      console.error("Erro ao excluir empresa:", error)
+    } catch (error: any) {
+      // Verificar se o erro é devido a usuários vinculados
+      if (error.response?.status === 400) {
+        alert("Não é possível excluir a empresa pois existem usuários vinculados a ela.")
+      } else {
+        console.error("Erro ao excluir empresa:", error)
+        alert("Erro ao excluir empresa.")
+      }
     }
   }
 
