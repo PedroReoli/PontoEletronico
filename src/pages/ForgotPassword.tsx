@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react"
 import { Link } from "react-router-dom"
 import api from "../services/api"
-// import "../styles/pages/Auth.css" // Removed import
+import { motion } from "framer-motion"
 
 function ForgotPassword() {
   const [email, setEmail] = useState("")
@@ -32,11 +32,45 @@ function ForgotPassword() {
   }
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-header">
-          <div className="auth-logo">
-            <svg
+    <motion.div className="auth-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <motion.div
+        className="auth-card"
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{
+          type: "spring",
+          stiffness: 300,
+          damping: 20,
+        }}
+      >
+        <motion.div
+          className="auth-header"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <motion.div
+            className="auth-logo"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 15,
+              delay: 0.3,
+            }}
+          >
+            <motion.svg
+              animate={{
+                rotate: [0, 360],
+              }}
+              transition={{
+                duration: 2,
+                ease: "easeInOut",
+                times: [0, 1],
+                repeat: 0,
+                delay: 0.5,
+              }}
               xmlns="http://www.w3.org/2000/svg"
               width="32"
               height="32"
@@ -49,14 +83,21 @@ function ForgotPassword() {
             >
               <circle cx="12" cy="12" r="10"></circle>
               <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
+            </motion.svg>
             <h1>Controle de Ponto</h1>
-          </div>
-          <h2>Recuperar Senha</h2>
-        </div>
+          </motion.div>
+          <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+            Recuperar Senha
+          </motion.h2>
+        </motion.div>
 
         {error && (
-          <div className="alert alert-error">
+          <motion.div
+            className="alert alert-error"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -73,12 +114,31 @@ function ForgotPassword() {
               <line x1="12" y1="16" x2="12.01" y2="16"></line>
             </svg>
             {error}
-          </div>
+          </motion.div>
         )}
 
         {success ? (
-          <div className="success-container">
-            <div className="success-icon">
+          <motion.div
+            className="success-container"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 20,
+            }}
+          >
+            <motion.div
+              className="success-icon"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 15,
+                delay: 0.2,
+              }}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="48"
@@ -93,23 +153,45 @@ function ForgotPassword() {
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
               </svg>
-            </div>
-            <h3>E-mail enviado!</h3>
-            <p>
+            </motion.div>
+            <motion.h3 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+              E-mail enviado!
+            </motion.h3>
+            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
               Enviamos um link para recuperação de senha para o e-mail {email}. Por favor, verifique sua caixa de
               entrada e siga as instruções.
-            </p>
-            <Link to="/login" className="btn btn-primary">
-              Voltar para o Login
-            </Link>
-          </div>
+            </motion.p>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+              <Link to="/login" className="btn btn-primary">
+                <motion.span whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  Voltar para o Login
+                </motion.span>
+              </Link>
+            </motion.div>
+          </motion.div>
         ) : (
-          <form onSubmit={handleSubmit} className="auth-form">
-            <p className="form-description">
+          <motion.form
+            onSubmit={handleSubmit}
+            className="auth-form"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            <motion.p
+              className="form-description"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
               Informe seu e-mail cadastrado e enviaremos instruções para redefinir sua senha.
-            </p>
+            </motion.p>
 
-            <div className="form-group">
+            <motion.div
+              className="form-group"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
               <label htmlFor="email">E-mail</label>
               <div className="input-with-icon">
                 <svg
@@ -136,12 +218,21 @@ function ForgotPassword() {
                   required
                 />
               </div>
-            </div>
+            </motion.div>
 
-            <button type="submit" className="btn btn-primary" disabled={loading}>
+            <motion.button
+              type="submit"
+              className="btn btn-primary"
+              disabled={loading}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
               {loading ? (
                 <>
-                  <svg
+                  <motion.svg
                     className="animate-spin"
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
@@ -161,23 +252,28 @@ function ForgotPassword() {
                     <line x1="18" y1="12" x2="22" y2="12"></line>
                     <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
                     <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
-                  </svg>
-                  Enviando...
+                  </motion.svg>
+                  <span className="ml-2">Enviando...</span>
                 </>
               ) : (
                 "Enviar Instruções"
               )}
-            </button>
-          </form>
+            </motion.button>
+          </motion.form>
         )}
 
-        <div className="auth-footer">
+        <motion.div
+          className="auth-footer"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+        >
           <p>
             Lembrou sua senha? <Link to="/login">Voltar para o login</Link>
           </p>
-        </div>
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   )
 }
 

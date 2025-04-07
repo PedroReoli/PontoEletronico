@@ -6,7 +6,6 @@ import { ptBR } from "date-fns/locale"
 import api from "../services/api"
 import { useAuth } from "../hooks/useAuth"
 import Layout from "../components/Layout"
-// import "../styles/pages/ManagerDashboard.css"
 
 interface TeamMember {
   id: string
