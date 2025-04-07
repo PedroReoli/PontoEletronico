@@ -4,11 +4,18 @@ import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import api from "../services/api"
-import { useAuth } from "../hooks/useAuth"
 import { useGeolocation } from "../hooks/useGeolocation"
 import Layout from "../components/Layout"
-// Remover esta linha
-// import "../styles/pages/EmployeeDashboard.css"
+import { motion, AnimatePresence } from "framer-motion"
+import { 
+  ClockIcon, 
+  ArrowRightIcon, 
+  CoffeeIcon, 
+  ArrowLeftIcon, 
+  MapPinIcon, 
+  ExclamationCircleIcon,
+  PencilSquareIcon
+} from "@heroicons/react/24/outline"
 
 interface TimeEntry {
   id: string
@@ -21,12 +28,12 @@ interface TimeEntry {
 }
 
 function EmployeeDashboard() {
-  const {} = useAuth() // Removendo user não utilizado
   const [loading, setLoading] = useState(true)
   const [todayEntries, setTodayEntries] = useState<TimeEntry[]>([])
   const [lastEntry, setLastEntry] = useState<TimeEntry | null>(null)
   const [currentTime, setCurrentTime] = useState(new Date())
   const [geoError, setGeoError] = useState<string | null>(null)
+  const [registering, setRegistering] = useState(false)
 
   // Obter a geolocalização
   const geolocation = useGeolocation()
@@ -68,6 +75,8 @@ function EmployeeDashboard() {
         return
       }
 
+      setRegistering(true)
+
       // Preparar dados com geolocalização
       const entryData = {
         type,
@@ -84,6 +93,8 @@ function EmployeeDashboard() {
       setGeoError(null)
     } catch (error) {
       console.error("Erro ao registrar ponto:", error)
+    } finally {
+      setRegistering(false)
     }
   }
 
@@ -109,426 +120,378 @@ function EmployeeDashboard() {
   }
 
   const formatDate = (date: Date) => {
-    return format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+    return format(date, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })
   }
 
   const getEntryTypeIcon = (type: string) => {
     switch (type) {
       case "CLOCK_IN":
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-            <polyline points="10 17 15 12 10 7"></polyline>
-            <line x1="15" y1="12" x2="3" y2="12"></line>
-          </svg>
-        )
+        return <ArrowRightIcon className="h-5 w-5" />
       case "BREAK_START":
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
-            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
-            <line x1="6" y1="1" x2="6" y2="4"></line>
-            <line x1="10" y1="1" x2="10" y2="4"></line>
-            <line x1="14" y1="1" x2="14" y2="4"></line>
-          </svg>
-        )
+        return <CoffeeIcon className="h-5 w-5" />
       case "BREAK_END":
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
-            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
-            <line x1="6" y1="1" x2="6" y2="4"></line>
-            <line x1="10" y1="1" x2="10" y2="4"></line>
-            <line x1="14" y1="1" x2="14" y2="4"></line>
-          </svg>
-        )
+        return <ArrowRightIcon className="h-5 w-5" />
       case "CLOCK_OUT":
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
-        )
+        return <ArrowLeftIcon className="h-5 w-5" />
       default:
         return null
     }
   }
 
+  const getEntryTypeColor = (type: string) => {
+    switch (type) {
+      case "CLOCK_IN":
+        return "bg-green-100 text-green-800"
+      case "BREAK_START":
+        return "bg-blue-100 text-blue-800"
+      case "BREAK_END":
+        return "bg-purple-100 text-purple-800"
+      case "CLOCK_OUT":
+        return "bg-red-100 text-red-800"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
+  }
+
   return (
     <Layout>
-      <div className="employee-dashboard">
-        <div className="dashboard-header">
-          <h1>Registro de Ponto</h1>
-          <div className="date-display">{formatDate(currentTime)}</div>
-        </div>
+      <div className="max-w-7xl mx-auto">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mb-8"
+        >
+          <h1 className="text-3xl font-bold text-gray-900">Registro de Ponto</h1>
+          <p className="mt-2 text-gray-600 text-lg">{formatDate(currentTime)}</p>
+        </motion.div>
 
-        <div className="dashboard-grid">
-          <div className="card time-display-card">
-            <div className="time-display">
-              <div className="current-time">{formatTime(currentTime)}</div>
-              <div className="time-label">Horário atual</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="col-span-1 md:col-span-2 lg:col-span-1"
+          >
+            <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+              <div className="p-6">
+                <div className="flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-gray-900 mb-1">{formatTime(currentTime)}</div>
+                    <div className="text-sm text-gray-500">Horário atual</div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
 
-          <div className="card time-entry-actions">
-            <h2>Registrar Ponto</h2>
-
-            {/* Mostrar status da geolocalização */}
-            <div
-              className={`geolocation-status ${geolocation.loading ? "loading" : geolocation.error ? "error" : "success"}`}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="mt-6 bg-white rounded-xl shadow-md overflow-hidden border border-gray-100"
             >
-              {geolocation.loading ? (
-                <>
-                  <div className="geo-icon loading">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <line x1="12" y1="2" x2="12" y2="6"></line>
-                      <line x1="12" y1="18" x2="12" y2="22"></line>
-                      <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
-                      <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
-                      <line x1="2" y1="12" x2="6" y2="12"></line>
-                      <line x1="18" y1="12" x2="22" y2="12"></line>
-                      <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
-                      <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
-                    </svg>
-                  </div>
-                  <p>Obtendo sua localização...</p>
-                </>
-              ) : geolocation.error ? (
-                <>
-                  <div className="geo-icon error">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="12" y1="8" x2="12" y2="12"></line>
-                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                    </svg>
-                  </div>
-                  <p>{geolocation.error}</p>
-                </>
-              ) : (
-                <>
-                  <div className="geo-icon success">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                      <circle cx="12" cy="10" r="3"></circle>
-                    </svg>
-                  </div>
-                  <p>Localização obtida (precisão: {Math.round(geolocation.accuracy || 0)}m)</p>
-                </>
-              )}
-            </div>
+              <div className="p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Registrar Ponto</h2>
 
-            {geoError && (
-              <div className="error-message">
-                {geoError}
-                <button className="btn-close" onClick={() => setGeoError(null)}>
-                  ×
-                </button>
-              </div>
-            )}
-
-            {loading ? (
-              <div className="loading-indicator">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="12" y1="2" x2="12" y2="6"></line>
-                  <line x1="12" y1="18" x2="12" y2="22"></line>
-                  <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
-                  <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
-                  <line x1="2" y1="12" x2="6" y2="12"></line>
-                  <line x1="18" y1="12" x2="22" y2="12"></line>
-                  <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
-                  <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
-                </svg>
-                <p>Carregando...</p>
-              </div>
-            ) : (
-              <div className="action-buttons">
-                {getNextActionType() === "CLOCK_IN" && (
-                  <button
-                    className="btn-entry clock-in"
-                    onClick={() => handleTimeEntry("CLOCK_IN")}
-                    disabled={geolocation.loading || !!geolocation.error}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                      <polyline points="10 17 15 12 10 7"></polyline>
-                      <line x1="15" y1="12" x2="3" y2="12"></line>
-                    </svg>
-                    Registrar Entrada
-                  </button>
-                )}
-
-                {getNextActionType() === "BREAK_START" && (
-                  <button
-                    className="btn-entry break-start"
-                    onClick={() => handleTimeEntry("BREAK_START")}
-                    disabled={geolocation.loading || !!geolocation.error}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
-                      <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
-                      <line x1="6" y1="1" x2="6" y2="4"></line>
-                      <line x1="10" y1="1" x2="10" y2="4"></line>
-                      <line x1="14" y1="1" x2="14" y2="4"></line>
-                    </svg>
-                    Iniciar Intervalo
-                  </button>
-                )}
-
-                {getNextActionType() === "BREAK_END" && (
-                  <button
-                    className="btn-entry break-end"
-                    onClick={() => handleTimeEntry("BREAK_END")}
-                    disabled={geolocation.loading || !!geolocation.error}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="23 4 23 10 17 10"></polyline>
-                      <polyline points="1 20 1 14 7 14"></polyline>
-                      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                    </svg>
-                    Retornar do Intervalo
-                  </button>
-                )}
-
-                {getNextActionType() === "CLOCK_OUT" && (
-                  <button
-                    className="btn-entry clock-out"
-                    onClick={() => handleTimeEntry("CLOCK_OUT")}
-                    disabled={geolocation.loading || !!geolocation.error}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                      <polyline points="16 17 21 12 16 7"></polyline>
-                      <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    Registrar Saída
-                  </button>
-                )}
-
-                {getNextActionType() === null && (
-                  <div className="day-completed">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    </svg>
-                    <p>Jornada de hoje finalizada!</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="card today-entries">
-            <h2>Registros de Hoje</h2>
-
-            {todayEntries.length === 0 ? (
-              <div className="no-entries">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="40"
-                  height="40"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="8" x2="12" y2="12"></line>
-                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-                <p>Nenhum registro hoje</p>
-              </div>
-            ) : (
-              <ul className="entries-list">
-                {todayEntries.map((entry) => (
-                  <li key={entry.id} className={`entry-item ${entry.type.toLowerCase()}`}>
-                    <div className="entry-icon">{getEntryTypeIcon(entry.type)}</div>
-                    <div className="entry-details">
-                      <span className="entry-type">
-                        {entry.type === "CLOCK_IN" && "Entrada"}
-                        {entry.type === "BREAK_START" && "Início do Intervalo"}
-                        {entry.type === "BREAK_END" && "Fim do Intervalo"}
-                        {entry.type === "CLOCK_OUT" && "Saída"}
-                      </span>
-                      <span className="entry-time">{format(new Date(entry.timestamp), "HH:mm:ss")}</span>
-                    </div>
-                    {entry.latitude && entry.longitude && (
-                      <div className="entry-location" title={`Lat: ${entry.latitude}, Long: ${entry.longitude}`}>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                          <circle cx="12" cy="10" r="3"></circle>
+                {/* Status da geolocalização */}
+                <div className={`mb-4 p-3 rounded-lg flex items-center ${
+                  geolocation.loading 
+                    ? "bg-gray-100" 
+                    : geolocation.error 
+                      ? "bg-red-50" 
+                      : "bg-green-50"
+                }`}>
+                  {geolocation.loading ? (
+                    <>
+                      <div className="mr-3 h-6 w-6 text-gray-400">
+                        <svg className="animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                       </div>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+                      <span className="text-sm text-gray-600">Obtendo sua localização...</span>
+                    </>
+                  ) : geolocation.error ? (
+                    <>
+                      <ExclamationCircleIcon className="mr-3 h-6 w-6 text-red-500" />
+                      <span className="text-sm text-red-700">{geolocation.error}</span>
+                    </>
+                  ) : (
+                    <>
+                      <MapPinIcon className="mr-3 h-6 w-6 text-green-500" />
+                      <span className="text-sm text-green-700">
+                        Localização obtida (precisão: {Math.round(geolocation.accuracy || 0)}m)
+                      </span>
+                    </>
+                  )}
+                </div>
 
-          <div className="card adjustment-request">
-            <h2>Solicitar Ajuste</h2>
-            <p>Precisa corrigir algum registro de ponto? Faça uma solicitação de ajuste.</p>
-            <button className="btn btn-primary">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-              </svg>
-              Nova Solicitação
-            </button>
-          </div>
+                {geoError && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mb-4 p-3 bg-red-50 rounded-lg flex items-center"
+                  >
+                    <ExclamationCircleIcon className="mr-3 h-6 w-6 text-red-500" />
+                    <span className="text-sm text-red-700">{geoError}</span>
+                    <button 
+                      onClick={() => setGeoError(null)}
+                      className="ml-auto text-red-500 hover:text-red-700"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </motion.div>
+                )}
+
+                {loading ? (
+                  <div className="flex justify-center items-center py-8">
+                    <svg className="animate-spin h-8 w-8 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                ) : (
+                  <div className="flex justify-center">
+                    <AnimatePresence mode="wait">
+                      {getNextActionType() === "CLOCK_IN" && (
+                        <motion.button
+                          key="clock-in"
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleTimeEntry("CLOCK_IN")}
+                          disabled={geolocation.loading || !!geolocation.error || registering}
+                          className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                        >
+                          {registering ? (
+                            <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          ) : (
+                            <ArrowRightIcon className="mr-2 h-5 w-5" />
+                          )}
+                          {registering ? "Registrando..." : "Registrar Entrada"}
+                        </motion.button>
+                      )}
+
+                      {getNextActionType() === "BREAK_START" && (
+                        <motion.button
+                          key="break-start"
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleTimeEntry("BREAK_START")}
+                          disabled={geolocation.loading || !!geolocation.error || registering}
+                          className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                        >
+                          {registering ? (
+                            <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          ) : (
+                            <CoffeeIcon className="mr-2 h-5 w-5" />
+                          )}
+                          {registering ? "Registrando..." : "Iniciar Intervalo"}
+                        </motion.button>
+                      )}
+
+                      {getNextActionType() === "BREAK_END" && (
+                        <motion.button
+                          key="break-end"
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleTimeEntry("BREAK_END")}
+                          disabled={geolocation.loading || !!geolocation.error || registering}
+                          className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                        >
+                          {registering ? (
+                            <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          ) : (
+                            <ArrowRightIcon className="mr-2 h-5 w-5" />
+                          )}
+                          {registering ? "Registrando..." : "Retornar do Intervalo"}
+                        </motion.button>
+                      )}
+
+                      {getNextActionType() === "CLOCK_OUT" && (
+                        <motion.button
+                          key="clock-out"
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleTimeEntry("CLOCK_OUT")}
+                          disabled={geolocation.loading || !!geolocation.error || registering}
+                          className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                        >
+                          {registering ? (
+                            <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          ) : (
+                            <ArrowLeftIcon className="mr-2 h-5 w-5" />
+                          )}
+                          {registering ? "Registrando..." : "Registrar Saída"}
+                        </motion.button>
+                      )}
+
+                      {getNextActionType() === null && (
+                        <motion.div
+                          key="day-completed"
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          className="w-full py-6 px-4 bg-gray-50 rounded-lg border border-gray-200 text-center"
+                        >
+                          <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-green-100 text-green-600 mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                          <h3 className="text-lg font-medium text-gray-900 mb-1">Jornada Finalizada</h3>
+                          <p className="text-sm text-gray-500">Você completou todos os registros de hoje!</p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="mt-6 bg-white rounded-xl shadow-md overflow-hidden border border-gray-100"
+            >
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900">Solicitar Ajuste</h2>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  >
+                    <PencilSquareIcon className="mr-2 h-4 w-4" />
+                    Nova Solicitação
+                  </motion.button>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Precisa corrigir algum registro de ponto? Faça uma solicitação de ajuste para seu gestor.
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="col-span-1 md:col-span-2"
+          >
+            <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 h-full">
+              <div className="p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Registros de Hoje</h2>
+
+                {loading ? (
+                  <div className="flex justify-center items-center py-8">
+                    <svg className="animate-spin h-8 w-8 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                ) : todayEntries.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 text-gray-500 mb-3">
+                      <ClockIcon className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-1">Nenhum registro hoje</h3>
+                    <p className="text-sm text-gray-500">Registre seu primeiro ponto do dia.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                        <div className="w-full border-t border-gray-200"></div>
+                      </div>
+                      <div className="relative flex justify-center">
+                        <span className="bg-white px-3 text-sm text-gray-500">Hoje</span>
+                      </div>
+                    </div>
+
+                    <motion.ul 
+                      initial="hidden"
+                      animate="visible"
+                      variants={{
+                        visible: {
+                          transition: {
+                            staggerChildren: 0.1
+                          }
+                        }
+                      }}
+                      className="space-y-3"
+                    >
+                      {todayEntries.map((entry, index) => (
+                        <motion.li 
+                          key={entry.id}
+                          variants={{
+                            hidden: { opacity: 0, y: 10 },
+                            visible: { opacity: 1, y: 0 }
+                          }}
+                          transition={{ duration: 0.3 }}
+                          className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden"
+                        >
+                          <div className="p-4 flex items-center">
+                            <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${getEntryTypeColor(entry.type)}`}>
+                              {getEntryTypeIcon(entry.type)}
+                            </div>
+                            <div className="ml-4 flex-1">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-sm font-medium text-gray-900">
+                                    {entry.type === "CLOCK_IN" && "Entrada"}
+                                    {entry.type === "BREAK_START" && "Início do Intervalo"}
+                                    {entry.type === "BREAK_END" && "Fim do Intervalo"}
+                                    {entry.type === "CLOCK_OUT" && "Saída"}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {format(new Date(entry.timestamp), "HH:mm:ss")}
+                                  </p>
+                                </div>
+                                {entry.latitude && entry.longitude && (
+                                  <div className="flex items-center text-xs text-gray-500" title={`Lat: ${entry.latitude.toFixed(6)}, Long: ${entry.longitude.toFixed(6)}`}>
+                                    <MapPinIcon className="h-4 w-4 mr-1" />
+                                    <span>Localização registrada</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </motion.li>
+                      ))}
+                    </motion.ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </Layout>
@@ -536,4 +499,3 @@ function EmployeeDashboard() {
 }
 
 export default EmployeeDashboard
-

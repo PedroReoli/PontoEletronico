@@ -4,6 +4,7 @@ import type { ReactNode } from "react"
 import { Navigate } from "react-router-dom"
 import { useAuth } from "../hooks/useAuth"
 import LoadingSpinner from "./LoadingSpinner"
+import { motion } from "framer-motion"
 
 interface ProtectedRouteProps {
   children: ReactNode
@@ -25,7 +26,11 @@ function ProtectedRoute({ children, roles }: ProtectedRouteProps) {
     return <Navigate to="/dashboard" />
   }
 
-  return <>{children}</>
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+      {children}
+    </motion.div>
+  )
 }
 
 export default ProtectedRoute

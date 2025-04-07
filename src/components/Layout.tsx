@@ -1,9 +1,9 @@
 "use client"
 
-import { type ReactNode, useState } from "react"
+import { type ReactNode, useState, useEffect } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { useAuth } from "../hooks/useAuth"
-// import "../styles/components/Layout.css"
+import { motion, AnimatePresence } from "framer-motion"
 
 interface LayoutProps {
   children: ReactNode
@@ -13,6 +13,11 @@ function Layout({ children }: LayoutProps) {
   const { user, logout } = useAuth()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const isActive = (path: string) => {
     return location.pathname === path
@@ -22,13 +27,40 @@ function Layout({ children }: LayoutProps) {
     setSidebarOpen(!sidebarOpen)
   }
 
+  const sidebarVariants = {
+    open: { x: 0, transition: { type: "spring", stiffness: 300, damping: 30 } },
+    closed: { x: "-100%", transition: { type: "spring", stiffness: 300, damping: 30 } },
+  }
+
+  const navItemVariants = {
+    open: {
+      opacity: 1,
+      y: 0,
+      transition: { type: "spring", stiffness: 300, damping: 30 },
+    },
+    closed: { opacity: 0, y: 20, transition: { duration: 0.2 } },
+  }
+
+  const navItemsStaggerVariants = {
+    open: {
+      transition: { staggerChildren: 0.07, delayChildren: 0.2 },
+    },
+    closed: {
+      transition: { staggerChildren: 0.05, staggerDirection: -1 },
+    },
+  }
+
+  if (!mounted) return null
+
   return (
     <div className="layout">
       <header className="header">
         <div className="container header-container">
           <div className="header-left">
-            <button className="menu-toggle" onClick={toggleSidebar}>
-              <svg
+            <motion.button className="menu-toggle" onClick={toggleSidebar} whileTap={{ scale: 0.9 }}>
+              <motion.svg
+                animate={sidebarOpen ? { rotate: 180 } : { rotate: 0 }}
+                transition={{ duration: 0.3 }}
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
                 height="24"
@@ -42,10 +74,12 @@ function Layout({ children }: LayoutProps) {
                 <line x1="3" y1="12" x2="21" y2="12"></line>
                 <line x1="3" y1="6" x2="21" y2="6"></line>
                 <line x1="3" y1="18" x2="21" y2="18"></line>
-              </svg>
-            </button>
+              </motion.svg>
+            </motion.button>
             <Link to="/dashboard" className="logo">
-              <svg
+              <motion.svg
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.5 }}
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
                 height="24"
@@ -58,22 +92,34 @@ function Layout({ children }: LayoutProps) {
               >
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="12 6 12 12 16 14"></polyline>
-              </svg>
+              </motion.svg>
               <span>Controle de Ponto</span>
             </Link>
           </div>
 
           <div className="user-info">
-            <div className="user-details">
+            <motion.div
+              className="user-details"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
               <span className="user-name">{user?.name}</span>
               <span className="user-role">
                 {user?.role === "ADMIN" && "Administrador"}
                 {user?.role === "MANAGER" && "Gestor"}
                 {user?.role === "EMPLOYEE" && "Funcionário"}
               </span>
-            </div>
-            <div className="user-avatar">{user?.name.charAt(0).toUpperCase()}</div>
-            <button className="btn-logout" onClick={logout}>
+            </motion.div>
+            <motion.div className="user-avatar" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              {user?.name.charAt(0).toUpperCase()}
+            </motion.div>
+            <motion.button
+              className="btn-logout"
+              onClick={logout}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="20"
@@ -89,17 +135,38 @@ function Layout({ children }: LayoutProps) {
                 <polyline points="16 17 21 12 16 7"></polyline>
                 <line x1="21" y1="12" x2="9" y2="12"></line>
               </svg>
-            </button>
+            </motion.button>
           </div>
         </div>
       </header>
 
       <div className="sidebar-layout">
-        <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
-          <nav className="nav">
+        <AnimatePresence>
+          {sidebarOpen && (
+            <motion.div
+              className="sidebar-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+        </AnimatePresence>
+
+        <motion.aside
+          className={`sidebar ${sidebarOpen ? "open" : ""}`}
+          variants={sidebarVariants}
+          initial="closed"
+          animate={sidebarOpen ? "open" : "closed"}
+        >
+          <motion.nav className="nav" variants={navItemsStaggerVariants}>
             <ul className="nav-list">
-              <li className="nav-item">
-                <Link to="/dashboard" className={`nav-link ${isActive("/dashboard") ? "active" : ""}`}>
+              <motion.li className="nav-item" variants={navItemVariants}>
+                <Link
+                  to="/dashboard"
+                  className={`nav-link ${isActive("/dashboard") ? "active" : ""}`}
+                  onClick={() => setSidebarOpen(false)}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
@@ -118,10 +185,14 @@ function Layout({ children }: LayoutProps) {
                   </svg>
                   <span>Dashboard</span>
                 </Link>
-              </li>
+              </motion.li>
 
-              <li className="nav-item">
-                <Link to="/timesheet" className={`nav-link ${isActive("/timesheet") ? "active" : ""}`}>
+              <motion.li className="nav-item" variants={navItemVariants}>
+                <Link
+                  to="/timesheet"
+                  className={`nav-link ${isActive("/timesheet") ? "active" : ""}`}
+                  onClick={() => setSidebarOpen(false)}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
@@ -138,10 +209,14 @@ function Layout({ children }: LayoutProps) {
                   </svg>
                   <span>Registro de Ponto</span>
                 </Link>
-              </li>
+              </motion.li>
 
-              <li className="nav-item">
-                <Link to="/reports" className={`nav-link ${isActive("/reports") ? "active" : ""}`}>
+              <motion.li className="nav-item" variants={navItemVariants}>
+                <Link
+                  to="/reports"
+                  className={`nav-link ${isActive("/reports") ? "active" : ""}`}
+                  onClick={() => setSidebarOpen(false)}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
@@ -161,11 +236,15 @@ function Layout({ children }: LayoutProps) {
                   </svg>
                   <span>Relatórios</span>
                 </Link>
-              </li>
+              </motion.li>
 
               {user?.role === "MANAGER" || user?.role === "ADMIN" ? (
-                <li className="nav-item">
-                  <Link to="/manager" className={`nav-link ${isActive("/manager") ? "active" : ""}`}>
+                <motion.li className="nav-item" variants={navItemVariants}>
+                  <Link
+                    to="/manager"
+                    className={`nav-link ${isActive("/manager") ? "active" : ""}`}
+                    onClick={() => setSidebarOpen(false)}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="20"
@@ -184,12 +263,16 @@ function Layout({ children }: LayoutProps) {
                     </svg>
                     <span>Gestão de Equipe</span>
                   </Link>
-                </li>
+                </motion.li>
               ) : null}
 
               {user?.role === "MANAGER" || user?.role === "ADMIN" ? (
-                <li className="nav-item">
-                  <Link to="/adjustments" className={`nav-link ${isActive("/adjustments") ? "active" : ""}`}>
+                <motion.li className="nav-item" variants={navItemVariants}>
+                  <Link
+                    to="/adjustments"
+                    className={`nav-link ${isActive("/adjustments") ? "active" : ""}`}
+                    onClick={() => setSidebarOpen(false)}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="20"
@@ -206,15 +289,21 @@ function Layout({ children }: LayoutProps) {
                     </svg>
                     <span>Ajustes Pendentes</span>
                   </Link>
-                </li>
+                </motion.li>
               ) : null}
 
               {user?.role === "ADMIN" ? (
                 <>
-                  <li className="nav-section">Administração</li>
+                  <motion.li className="nav-section" variants={navItemVariants}>
+                    Administração
+                  </motion.li>
 
-                  <li className="nav-item">
-                    <Link to="/admin" className={`nav-link ${isActive("/admin") ? "active" : ""}`}>
+                  <motion.li className="nav-item" variants={navItemVariants}>
+                    <Link
+                      to="/admin"
+                      className={`nav-link ${isActive("/admin") ? "active" : ""}`}
+                      onClick={() => setSidebarOpen(false)}
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="20"
@@ -231,10 +320,14 @@ function Layout({ children }: LayoutProps) {
                       </svg>
                       <span>Painel Admin</span>
                     </Link>
-                  </li>
+                  </motion.li>
 
-                  <li className="nav-item">
-                    <Link to="/admin/users" className={`nav-link ${isActive("/admin/users") ? "active" : ""}`}>
+                  <motion.li className="nav-item" variants={navItemVariants}>
+                    <Link
+                      to="/admin/users"
+                      className={`nav-link ${isActive("/admin/users") ? "active" : ""}`}
+                      onClick={() => setSidebarOpen(false)}
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="20"
@@ -251,10 +344,14 @@ function Layout({ children }: LayoutProps) {
                       </svg>
                       <span>Usuários</span>
                     </Link>
-                  </li>
+                  </motion.li>
 
-                  <li className="nav-item">
-                    <Link to="/admin/companies" className={`nav-link ${isActive("/admin/companies") ? "active" : ""}`}>
+                  <motion.li className="nav-item" variants={navItemVariants}>
+                    <Link
+                      to="/admin/companies"
+                      className={`nav-link ${isActive("/admin/companies") ? "active" : ""}`}
+                      onClick={() => setSidebarOpen(false)}
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="20"
@@ -271,12 +368,13 @@ function Layout({ children }: LayoutProps) {
                       </svg>
                       <span>Empresas</span>
                     </Link>
-                  </li>
+                  </motion.li>
 
-                  <li className="nav-item">
+                  <motion.li className="nav-item" variants={navItemVariants}>
                     <Link
                       to="/admin/shift-groups"
                       className={`nav-link ${isActive("/admin/shift-groups") ? "active" : ""}`}
+                      onClick={() => setSidebarOpen(false)}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -296,12 +394,13 @@ function Layout({ children }: LayoutProps) {
                       </svg>
                       <span>Grupos de Jornada</span>
                     </Link>
-                  </li>
+                  </motion.li>
 
-                  <li className="nav-item">
+                  <motion.li className="nav-item" variants={navItemVariants}>
                     <Link
                       to="/admin/shift-types"
                       className={`nav-link ${isActive("/admin/shift-types") ? "active" : ""}`}
+                      onClick={() => setSidebarOpen(false)}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -318,22 +417,29 @@ function Layout({ children }: LayoutProps) {
                       </svg>
                       <span>Tipos de Plantão</span>
                     </Link>
-                  </li>
+                  </motion.li>
                 </>
               ) : null}
             </ul>
-          </nav>
+          </motion.nav>
 
-          <div className="sidebar-footer">
+          <motion.div className="sidebar-footer" variants={navItemVariants}>
             <div className="app-version">v1.0.0</div>
-          </div>
-        </aside>
+          </motion.div>
+        </motion.aside>
 
-        <main className="main-content">{children}</main>
+        <main className="main-content">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {children}
+          </motion.div>
+        </main>
       </div>
-
-      {/* Overlay para fechar o menu em dispositivos móveis */}
-      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>}
     </div>
   )
 }
