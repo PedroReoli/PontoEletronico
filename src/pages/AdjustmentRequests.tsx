@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import api from "../services/api"
 import Layout from "../components/Layout"
-import "../styles/pages/AdjustmentRequests.css"
+
 
 interface AdjustmentRequest {
   id: string
