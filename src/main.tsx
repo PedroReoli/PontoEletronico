@@ -6,6 +6,10 @@ import { AuthProvider } from "./contexts/AuthContext"
 import "./styles/variables.css"
 import "./styles/globals.css"
 
+// css reutilizaveis abaixo
+import "./styles/passageiro.css"
+import "./styles/passageiro2.css"
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
