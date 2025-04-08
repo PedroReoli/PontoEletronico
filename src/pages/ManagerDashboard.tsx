@@ -103,19 +103,46 @@ function ManagerDashboard() {
   return (
     <Layout>
       <div className="manager-dashboard">
-        <motion.div
-          className="dashboard-header"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div>
+        <div className="dashboard-welcome">
+          <motion.div
+            className="welcome-content"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <h1>Dashboard do Gestor</h1>
-            <p className="dashboard-date">{format(currentDate, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
-          </div>
-        </motion.div>
+            <p className="welcome-date">{format(currentDate, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
+          </motion.div>
 
-        <motion.div className="dashboard-stats" variants={container} initial="hidden" animate="show">
+          <motion.div
+            className="welcome-actions"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <button className="btn-dashboard">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              Relatório Mensal
+            </button>
+          </motion.div>
+        </div>
+
+        <motion.div className="stats-overview" variants={container} initial="hidden" animate="show">
           <motion.div className="stat-card" variants={item}>
             <div className="stat-icon present">
               <svg
@@ -136,6 +163,14 @@ function ManagerDashboard() {
             <div className="stat-info">
               <h3>Presentes</h3>
               <p className="stat-value">{teamMembers.filter((member) => member.status === "PRESENT").length}</p>
+            </div>
+            <div className="stat-progress">
+              <div
+                className="progress-bar present"
+                style={{
+                  width: `${(teamMembers.filter((member) => member.status === "PRESENT").length / teamMembers.length) * 100}%`,
+                }}
+              ></div>
             </div>
           </motion.div>
 
@@ -163,6 +198,14 @@ function ManagerDashboard() {
               <h3>Em Intervalo</h3>
               <p className="stat-value">{teamMembers.filter((member) => member.status === "BREAK").length}</p>
             </div>
+            <div className="stat-progress">
+              <div
+                className="progress-bar break"
+                style={{
+                  width: `${(teamMembers.filter((member) => member.status === "BREAK").length / teamMembers.length) * 100}%`,
+                }}
+              ></div>
+            </div>
           </motion.div>
 
           <motion.div className="stat-card" variants={item}>
@@ -185,6 +228,14 @@ function ManagerDashboard() {
             <div className="stat-info">
               <h3>Ausentes</h3>
               <p className="stat-value">{teamMembers.filter((member) => member.status === "ABSENT").length}</p>
+            </div>
+            <div className="stat-progress">
+              <div
+                className="progress-bar absent"
+                style={{
+                  width: `${(teamMembers.filter((member) => member.status === "ABSENT").length / teamMembers.length) * 100}%`,
+                }}
+              ></div>
             </div>
           </motion.div>
 
@@ -209,19 +260,30 @@ function ManagerDashboard() {
               <h3>Não Iniciaram</h3>
               <p className="stat-value">{teamMembers.filter((member) => member.status === "NOT_STARTED").length}</p>
             </div>
+            <div className="stat-progress">
+              <div
+                className="progress-bar not-started"
+                style={{
+                  width: `${(teamMembers.filter((member) => member.status === "NOT_STARTED").length / teamMembers.length) * 100}%`,
+                }}
+              ></div>
+            </div>
           </motion.div>
         </motion.div>
 
         <div className="dashboard-grid">
           <motion.div
-            className="card team-status"
+            className="dashboard-card team-status"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
             <div className="card-header">
-              <h2>Status da Equipe</h2>
-              <button className="btn btn-secondary">
+              <div className="card-title">
+                <h2>Status da Equipe</h2>
+                <span className="card-subtitle">Visão geral da sua equipe</span>
+              </div>
+              <button className="btn-export">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="18"
@@ -233,58 +295,47 @@ function ManagerDashboard() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
-                Exportar Relatório
+                Exportar
               </button>
             </div>
 
             {loading ? (
               <div className="loading-container">
-                <svg
-                  className="animate-spin"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="12" y1="2" x2="12" y2="6"></line>
-                  <line x1="12" y1="18" x2="12" y2="22"></line>
-                  <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
-                  <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
-                  <line x1="2" y1="12" x2="6" y2="12"></line>
-                  <line x1="18" y1="12" x2="22" y2="12"></line>
-                  <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
-                  <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
-                </svg>
+                <div className="loading-animation">
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
                 <p>Carregando dados da equipe...</p>
               </div>
             ) : (
               <div className="team-list">
                 {teamMembers.length === 0 ? (
                   <div className="empty-state">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="48"
-                      height="48"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="9" cy="7" r="4"></circle>
-                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
+                    <div className="empty-icon">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="48"
+                        height="48"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                      </svg>
+                    </div>
                     <p>Nenhum membro na equipe</p>
+                    <button className="btn-add">Adicionar Membros</button>
                   </div>
                 ) : (
                   <div className="table-responsive">
@@ -390,41 +441,28 @@ function ManagerDashboard() {
           </motion.div>
 
           <motion.div
-            className="card pending-adjustments"
+            className="dashboard-card pending-adjustments"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
             <div className="card-header">
-              <h2>Ajustes Pendentes</h2>
-              <button className="btn btn-primary" onClick={() => (window.location.href = "/adjustments")}>
+              <div className="card-title">
+                <h2>Ajustes Pendentes</h2>
+                <span className="card-subtitle">Solicitações aguardando aprovação</span>
+              </div>
+              <button className="btn-primary" onClick={() => (window.location.href = "/adjustments")}>
                 Ver Todos
               </button>
             </div>
 
             {loading ? (
               <div className="loading-container">
-                <svg
-                  className="animate-spin"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="12" y1="2" x2="12" y2="6"></line>
-                  <line x1="12" y1="18" x2="12" y2="22"></line>
-                  <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
-                  <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
-                  <line x1="2" y1="12" x2="6" y2="12"></line>
-                  <line x1="18" y1="12" x2="22" y2="12"></line>
-                  <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
-                  <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
-                </svg>
+                <div className="loading-animation">
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
                 <p>Carregando ajustes pendentes...</p>
               </div>
             ) : (
@@ -504,23 +542,26 @@ function ManagerDashboard() {
                   </div>
                 ) : (
                   <div className="empty-state">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="48"
-                      height="48"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-                      <line x1="9" y1="9" x2="9.01" y2="9"></line>
-                      <line x1="15" y1="9" x2="15.01" y2="9"></line>
-                    </svg>
+                    <div className="empty-icon">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="48"
+                        height="48"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                        <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                        <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                      </svg>
+                    </div>
                     <p>Nenhum ajuste pendente</p>
+                    <span className="empty-subtitle">Tudo em dia!</span>
                   </div>
                 )}
               </>
