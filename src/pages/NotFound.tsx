@@ -5,11 +5,11 @@ import { motion } from "framer-motion"
 
 function NotFound() {
   return (
-    <motion.div className="not-found-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+    <div className="not-found-container">
       <motion.div
         className="not-found-content"
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+        initial={{ opacity: 0, y: -50 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{
           type: "spring",
           stiffness: 300,
@@ -65,18 +65,18 @@ function NotFound() {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                style={{ marginRight: "8px" }}
               >
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                 <polyline points="9 22 9 12 15 12 15 22"></polyline>
               </svg>
-              <span className="ml-2">Voltar para o Dashboard</span>
+              Voltar para o Dashboard
             </motion.div>
           </Link>
         </motion.div>
       </motion.div>
-    </motion.div>
+    </div>
   )
 }
 
 export default NotFound
-
