@@ -3,7 +3,7 @@ import axios from "axios"
 // Criar uma instância do axios com a URL base
 const api = axios.create({
   // Usar type assertion para acessar a variável de ambiente
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3333",
+  baseURL: (import.meta.env.VITE_API_URL || "http://localhost:3333") + "/api",
 })
 
 // Adicionar interceptor para lidar com erros de autenticação
@@ -20,4 +20,3 @@ api.interceptors.response.use(
 )
 
 export default api
-
