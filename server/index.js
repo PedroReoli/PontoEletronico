@@ -27,21 +27,29 @@ export const prisma = new PrismaClient()
 // Configuração do Express
 const app = express()
 
-// Configurar CORS
+// Configurar CORS com opções permissivas para desenvolvimento
 app.use(
   cors({
-    origin: true,
+    origin: true, // Permitir qualquer origem
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 )
 
-// Configurar cabeçalhos de segurança apenas se não estiver desativado para desenvolvimento
-if (process.env.DISABLE_CSP !== "true") {
+// Modificar a seção de configuração CSP para desativá-la completamente em desenvolvimento
+// Substitua o bloco if (process.env.DISABLE_CSP !== "true") { ... } por:
+
+// Desativar CSP completamente em desenvolvimento
+if (process.env.NODE_ENV === "development") {
+  console.log("CSP desativado para ambiente de desenvolvimento")
+  // Não aplicar CSP em desenvolvimento
+} else {
   app.use((req, res, next) => {
-    // Política CSP
+    // Política CSP para produção
     res.setHeader(
       "Content-Security-Policy",
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'",
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'",
     )
     next()
   })
