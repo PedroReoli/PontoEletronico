@@ -4,8 +4,8 @@ import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import api from "../services/api"
-import { useAuth } from "../hooks/useAuth"
 import Layout from "../components/Layout"
+import { motion } from "framer-motion"
 
 interface TeamMember {
   id: string
@@ -29,7 +29,6 @@ interface AdjustmentRequest {
 }
 
 function ManagerDashboard() {
-  const {} = useAuth() // Removendo user não utilizado
   const [loading, setLoading] = useState(true)
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [pendingAdjustments, setPendingAdjustments] = useState<AdjustmentRequest[]>([])
@@ -86,18 +85,38 @@ function ManagerDashboard() {
     }
   }
 
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  }
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
+  }
+
   return (
     <Layout>
       <div className="manager-dashboard">
-        <div className="dashboard-header">
+        <motion.div
+          className="dashboard-header"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <div>
             <h1>Dashboard do Gestor</h1>
             <p className="dashboard-date">{format(currentDate, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="dashboard-stats">
-          <div className="stat-card">
+        <motion.div className="dashboard-stats" variants={container} initial="hidden" animate="show">
+          <motion.div className="stat-card" variants={item}>
             <div className="stat-icon present">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -118,9 +137,9 @@ function ManagerDashboard() {
               <h3>Presentes</h3>
               <p className="stat-value">{teamMembers.filter((member) => member.status === "PRESENT").length}</p>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="stat-card">
+          <motion.div className="stat-card" variants={item}>
             <div className="stat-icon break">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -144,9 +163,9 @@ function ManagerDashboard() {
               <h3>Em Intervalo</h3>
               <p className="stat-value">{teamMembers.filter((member) => member.status === "BREAK").length}</p>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="stat-card">
+          <motion.div className="stat-card" variants={item}>
             <div className="stat-icon absent">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -167,9 +186,9 @@ function ManagerDashboard() {
               <h3>Ausentes</h3>
               <p className="stat-value">{teamMembers.filter((member) => member.status === "ABSENT").length}</p>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="stat-card">
+          <motion.div className="stat-card" variants={item}>
             <div className="stat-icon not-started">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -190,11 +209,16 @@ function ManagerDashboard() {
               <h3>Não Iniciaram</h3>
               <p className="stat-value">{teamMembers.filter((member) => member.status === "NOT_STARTED").length}</p>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         <div className="dashboard-grid">
-          <div className="card team-status">
+          <motion.div
+            className="card team-status"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
             <div className="card-header">
               <h2>Status da Equipe</h2>
               <button className="btn btn-secondary">
@@ -209,7 +233,7 @@ function ManagerDashboard() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                 </svg>
                 Exportar Relatório
               </button>
@@ -263,92 +287,114 @@ function ManagerDashboard() {
                     <p>Nenhum membro na equipe</p>
                   </div>
                 ) : (
-                  <table className="team-table">
-                    <thead>
-                      <tr>
-                        <th>Funcionário</th>
-                        <th>Status</th>
-                        <th>Último Registro</th>
-                        <th>Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {teamMembers.map((member) => (
-                        <tr key={member.id}>
-                          <td className="member-info">
-                            <div className="member-avatar">{member.name.charAt(0).toUpperCase()}</div>
-                            <div className="member-details">
-                              <span className="member-name">{member.name}</span>
-                              <span className="member-email">{member.email}</span>
-                            </div>
-                          </td>
-                          <td>
-                            <span className={`status-badge ${getStatusColor(member.status)}`}>
-                              {getStatusText(member.status)}
-                            </span>
-                          </td>
-                          <td>
-                            {member.lastEntry ? (
-                              <div className="last-entry">
-                                <span className="entry-time">
-                                  {format(new Date(member.lastEntry.timestamp), "HH:mm")}
-                                </span>
-                                <span className="entry-type">
-                                  {member.lastEntry.type === "CLOCK_IN" && "Entrada"}
-                                  {member.lastEntry.type === "BREAK_START" && "Início do Intervalo"}
-                                  {member.lastEntry.type === "BREAK_END" && "Fim do Intervalo"}
-                                  {member.lastEntry.type === "CLOCK_OUT" && "Saída"}
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="no-entry">Nenhum registro</span>
-                            )}
-                          </td>
-                          <td>
-                            <div className="action-buttons">
-                              <button className="btn-icon" title="Ver detalhes">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="18"
-                                  height="18"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                  <circle cx="12" cy="12" r="3"></circle>
-                                </svg>
-                              </button>
-                              <button className="btn-icon" title="Enviar mensagem">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="18"
-                                  height="18"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                                </svg>
-                              </button>
-                            </div>
-                          </td>
+                  <div className="table-responsive">
+                    <table className="team-table">
+                      <thead>
+                        <tr>
+                          <th>Funcionário</th>
+                          <th>Status</th>
+                          <th>Último Registro</th>
+                          <th>Ações</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {teamMembers.map((member, index) => (
+                          <motion.tr
+                            key={member.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 * index }}
+                          >
+                            <td className="member-info">
+                              <div className="member-avatar">{member.name.charAt(0).toUpperCase()}</div>
+                              <div className="member-details">
+                                <span className="member-name">{member.name}</span>
+                                <span className="member-email">{member.email}</span>
+                              </div>
+                            </td>
+                            <td>
+                              <span className={`status-badge ${getStatusColor(member.status)}`}>
+                                {getStatusText(member.status)}
+                              </span>
+                            </td>
+                            <td>
+                              {member.lastEntry ? (
+                                <div className="last-entry">
+                                  <span className="entry-time">
+                                    {format(new Date(member.lastEntry.timestamp), "HH:mm")}
+                                  </span>
+                                  <span className="entry-type">
+                                    {member.lastEntry.type === "CLOCK_IN" && "Entrada"}
+                                    {member.lastEntry.type === "BREAK_START" && "Início do Intervalo"}
+                                    {member.lastEntry.type === "BREAK_END" && "Fim do Intervalo"}
+                                    {member.lastEntry.type === "CLOCK_OUT" && "Saída"}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="no-entry">Nenhum registro</span>
+                              )}
+                            </td>
+                            <td>
+                              <div className="action-buttons">
+                                <motion.button
+                                  className="btn-icon"
+                                  title="Ver detalhes"
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                  </svg>
+                                </motion.button>
+                                <motion.button
+                                  className="btn-icon"
+                                  title="Enviar mensagem"
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                  </svg>
+                                </motion.button>
+                              </div>
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
               </div>
             )}
-          </div>
+          </motion.div>
 
-          <div className="card pending-adjustments">
+          <motion.div
+            className="card pending-adjustments"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
             <div className="card-header">
               <h2>Ajustes Pendentes</h2>
               <button className="btn btn-primary" onClick={() => (window.location.href = "/adjustments")}>
@@ -385,8 +431,14 @@ function ManagerDashboard() {
               <>
                 {pendingAdjustments.length > 0 ? (
                   <div className="adjustments-list">
-                    {pendingAdjustments.slice(0, 5).map((adjustment) => (
-                      <div key={adjustment.id} className="adjustment-item">
+                    {pendingAdjustments.slice(0, 5).map((adjustment, index) => (
+                      <motion.div
+                        key={adjustment.id}
+                        className="adjustment-item"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 * index }}
+                      >
                         <div className="adjustment-info">
                           <div className="adjustment-user">{adjustment.userName}</div>
                           <div className="adjustment-details">
@@ -400,7 +452,12 @@ function ManagerDashboard() {
                           </div>
                         </div>
                         <div className="adjustment-actions">
-                          <button className="btn-icon approve" title="Aprovar">
+                          <motion.button
+                            className="btn-icon approve"
+                            title="Aprovar"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                          >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="18"
@@ -414,8 +471,13 @@ function ManagerDashboard() {
                             >
                               <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
-                          </button>
-                          <button className="btn-icon reject" title="Rejeitar">
+                          </motion.button>
+                          <motion.button
+                            className="btn-icon reject"
+                            title="Rejeitar"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                          >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="18"
@@ -430,9 +492,9 @@ function ManagerDashboard() {
                               <line x1="18" y1="6" x2="6" y2="18"></line>
                               <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
-                          </button>
+                          </motion.button>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                     {pendingAdjustments.length > 5 && (
                       <div className="view-more">
@@ -463,7 +525,7 @@ function ManagerDashboard() {
                 )}
               </>
             )}
-          </div>
+          </motion.div>
         </div>
       </div>
     </Layout>
@@ -471,4 +533,3 @@ function ManagerDashboard() {
 }
 
 export default ManagerDashboard
-

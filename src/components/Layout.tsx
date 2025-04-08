@@ -110,7 +110,13 @@ function Layout({ children }: LayoutProps) {
         <div className="header-container">
           {/* Left section */}
           <div className="header-left">
-            <button id="sidebar-toggle" onClick={toggleSidebar} className="menu-toggle" aria-label="Toggle sidebar">
+            <button 
+              id="sidebar-toggle" 
+              onClick={toggleSidebar} 
+              className="menu-toggle" 
+              aria-label="Toggle sidebar"
+              aria-expanded={sidebarOpen}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -184,6 +190,7 @@ function Layout({ children }: LayoutProps) {
                 className="profile-button"
                 aria-label="Menu do usuário"
                 aria-haspopup="true"
+                aria-expanded={profileDropdownOpen}
               >
                 <div className="user-details">
                   <span className="user-name">{user?.name}</span>
@@ -574,9 +581,9 @@ function Layout({ children }: LayoutProps) {
               )}
             </ul>
           </nav>
-
+{/* MUDAR ESSA VERSAO APENAS APOS O LANÇAMENTO */}
+{/* VERSAO APP  */}
           <div className="sidebar-footer">
-            {/* MUDAR ESSA VERSAO SOMENTE APOS O LANCAMENTO */}
             <div className="app-version">v1.0.0</div>
           </div>
         </motion.aside>
