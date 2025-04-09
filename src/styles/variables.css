@@ -1,40 +1,64 @@
+/* 
+  VARIABLES.CSS
+
+  Este arquivo contém todas as variáveis CSS utilizadas no projeto,
+  organizadas por categorias para facilitar a manutenção.
+  ( Ainda mais que eu não sei se vou usar tudo isso, mas é bom ter )
+   ( e acabei de começar a focar no front -09/04/2025 )
+  As variáveis são definidas em :root para que possam ser acessadas globalmente.
+  
+*/
+
 :root {
-  /* Cores principais - Nova paleta baseada em blue-500 */
-  --color-primary: #3b82f6; /* blue-500 */
-  --color-primary-light: #60a5fa; /* blue-400 */
-  --color-primary-dark: #2563eb; /* blue-600 */
- 
-  --color-secondary: #ec4899; /* pink-500 - complementar ao azul */
-  --color-secondary-light: #f472b6; /* pink-400 */
-  --color-secondary-dark: #db2777; /* pink-600 */
- 
-  /* Cores de feedback */
-  --color-success: #10b981; /* emerald-500 */
-  --color-warning: #f59e0b; /* amber-500 */
-  --color-danger: #ef4444; /* red-500 */
-  --color-info: #0ea5e9; /* sky-500 */
- 
-  /* Tons de cinza refinados */
-  --color-gray-50: #f9fafb;
-  --color-gray-100: #f3f4f6;
-  --color-gray-200: #e5e7eb;
-  --color-gray-300: #d1d5db;
-  --color-gray-400: #9ca3af;
-  --color-gray-500: #6b7280;
-  --color-gray-600: #4b5563;
-  --color-gray-700: #374151;
-  --color-gray-800: #1f2937;
-  --color-gray-900: #111827;
- 
-  --color-white: #ffffff;
-  --color-black: #000000;
- 
-  /* Tipografia */
-  --font-family-base: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell,
-    "Open Sans", "Helvetica Neue", sans-serif;
-  --font-family-heading: var(--font-family-base);
- 
-  /* Tamanhos de fonte em px */
+  /* ===== CORES ===== */
+  /* Cores principais */
+  --blue-50: #e6f1fe;
+  --blue-100: #cce3fd;
+  --blue-200: #99c7fb;
+  --blue-300: #66aaf9;
+  --blue-400: #338ef7;
+  --blue-500: #0072f5; /* Cor padrão */
+  --blue-600: #005bc4;
+  --blue-700: #004493;
+  --blue-800: #002e62;
+  --blue-900: #001731;
+
+  /* Tons de cinza */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+
+  /* Cores de estado */
+  --success-light: #d1fae5;
+  --success: #10b981;
+  --success-dark: #059669;
+
+  --warning-light: #fef3c7;
+  --warning: #f59e0b;
+  --warning-dark: #d97706;
+
+  --error-light: #fee2e2;
+  --error: #ef4444;
+  --error-dark: #dc2626;
+
+  --info-light: #dbeafe;
+  --info: #3b82f6;
+  --info-dark: #2563eb;
+
+  /* ===== TIPOGRAFIA ===== */
+  /* Família de fontes */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+    "Helvetica Neue", sans-serif;
+  --font-mono: "JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* Tamanhos de fonte base (desktop) */
   --font-size-xs: 12px;
   --font-size-sm: 14px;
   --font-size-base: 16px;
@@ -45,85 +69,208 @@
   --font-size-4xl: 36px;
   --font-size-5xl: 48px;
   --font-size-6xl: 60px;
- 
+
   /* Pesos de fonte */
+  --font-weight-thin: 100;
+  --font-weight-extralight: 200;
   --font-weight-light: 300;
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
- 
-  /* Espaçamentos precisos */
-  --spacing-1: 4px;
-  --spacing-2: 8px;
-  --spacing-3: 12px;
-  --spacing-4: 16px;
-  --spacing-5: 20px;
-  --spacing-6: 24px;
-  --spacing-8: 32px;
-  --spacing-10: 40px;
-  --spacing-12: 48px;
-  --spacing-16: 64px;
-  --spacing-20: 80px;
-  --spacing-24: 96px;
- 
-  /* Bordas */
-  --border-radius-sm: 4px;
-  --border-radius-md: 6px;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+
+  /* Altura de linha */
+  --line-height-none: 1;
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+
+  /* ===== ESPAÇAMENTOS ===== */
+  --space-0: 0px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+  --space-40: 160px;
+  --space-48: 192px;
+  --space-56: 224px;
+  --space-64: 256px;
+
+  /* ===== BORDAS ===== */
+  --border-radius-none: 0px;
+  --border-radius-sm: 2px;
+  --border-radius-md: 4px;
   --border-radius-lg: 8px;
   --border-radius-xl: 12px;
   --border-radius-2xl: 16px;
+  --border-radius-3xl: 24px;
   --border-radius-full: 9999px;
- 
-  /* Sombras refinadas */
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+
+  --border-width-thin: 1px;
+  --border-width-medium: 2px;
+  --border-width-thick: 4px;
+
+  /* ===== SOMBRAS ===== */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
-  --shadow-outline: 0 0 0 3px rgba(59, 130, 246, 0.5); /* Atualizado para blue-500 */
-  --shadow-colored: 0 10px 15px -3px var(--shadow-color), 0 4px 6px -2px var(--shadow-color);
- 
-  /* Breakpoints */
+  --shadow-outline: 0 0 0 3px rgba(0, 114, 245, 0.5);
+  --shadow-none: none;
+
+  /* ===== TRANSIÇÕES ===== */
+  --transition-fast: 150ms;
+  --transition-normal: 300ms;
+  --transition-slow: 500ms;
+  --transition-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --transition-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --transition-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ===== Z-INDEX ===== */
+  --z-0: 0;
+  --z-10: 10;
+  --z-20: 20;
+  --z-30: 30;
+  --z-40: 40;
+  --z-50: 50;
+  --z-auto: auto;
+
+  /* ===== LAYOUT ===== */
+  --container-padding: 16px;
+  --header-height: 64px;
+  --sidebar-width: 280px;
+  --sidebar-width-collapsed: 80px;
+
+  /* ===== BREAKPOINTS ===== */
+  --breakpoint-xs: 480px;
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1280px;
   --breakpoint-2xl: 1536px;
- 
-  /* Transições */
-  --transition-fast: 150ms;
-  --transition-normal: 300ms;
-  --transition-slow: 500ms;
-  --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
- 
-  /* Layout */
-  --header-height: 64px;
-  --sidebar-width: 280px;
-  --sidebar-collapsed-width: 70px;
-  --content-max-width: 1400px;
-  
-  /* Glassmorphism */
-  --glass-background: rgba(255, 255, 255, 0.8);
-  --glass-background-dark: rgba(31, 41, 55, 0.85);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.18);
-  --glass-blur: 10px;
-  
-  /* Gradientes */
-  --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
-  --gradient-secondary: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-light) 100%);
-  --gradient-success: linear-gradient(135deg, var(--color-success) 0%, #34d399 100%); /* emerald-400 */
-  --gradient-danger: linear-gradient(135deg, var(--color-danger) 0%, #f87171 100%); /* red-400 */
-  --gradient-warning: linear-gradient(135deg, var(--color-warning) 0%, #fbbf24 100%); /* amber-400 */
-  --gradient-info: linear-gradient(135deg, var(--color-info) 0%, #38bdf8 100%); /* sky-400 */
-  --gradient-blue: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
-  
-  /* Efeitos de cartão */
-  --card-border-radius: 12px;
-  --card-padding: 24px;
-  --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
-  --card-hover-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.15);
-  --card-transition: all 0.3s ease;
- }
- 
+}
+
+/* ===== MEDIA QUERIES - BREAKPOINTS ===== */
+
+/* Breakpoint XS (Mobile pequeno) - até 479px */
+@media (max-width: 479px) {
+  :root {
+    --font-size-xs: 10px;
+    --font-size-sm: 12px;
+    --font-size-base: 14px;
+    --font-size-lg: 16px;
+    --font-size-xl: 18px;
+    --font-size-2xl: 20px;
+    --font-size-3xl: 24px;
+    --font-size-4xl: 30px;
+    --font-size-5xl: 36px;
+    --font-size-6xl: 48px;
+
+    --container-padding: 12px;
+    --header-height: 56px;
+    --sidebar-width: 240px;
+  }
+}
+
+/* Breakpoint SM (Mobile) - 480px a 639px */
+@media (min-width: 480px) and (max-width: 639px) {
+  :root {
+    --font-size-xs: 11px;
+    --font-size-sm: 13px;
+    --font-size-base: 15px;
+    --font-size-lg: 17px;
+    --font-size-xl: 19px;
+    --font-size-2xl: 22px;
+    --font-size-3xl: 26px;
+    --font-size-4xl: 32px;
+    --font-size-5xl: 40px;
+    --font-size-6xl: 52px;
+
+    --container-padding: 16px;
+    --header-height: 60px;
+  }
+}
+
+/* Breakpoint MD (Tablet) - 640px a 767px */
+@media (min-width: 640px) and (max-width: 767px) {
+  :root {
+    --font-size-xs: 11px;
+    --font-size-sm: 13px;
+    --font-size-base: 15px;
+    --font-size-lg: 17px;
+    --font-size-xl: 19px;
+    --font-size-2xl: 22px;
+    --font-size-3xl: 28px;
+    --font-size-4xl: 34px;
+    --font-size-5xl: 42px;
+    --font-size-6xl: 54px;
+  }
+}
+
+/* Breakpoint LG (Tablet grande) - 768px a 1023px */
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root {
+    --font-size-xs: 12px;
+    --font-size-sm: 14px;
+    --font-size-base: 16px;
+    --font-size-lg: 18px;
+    --font-size-xl: 20px;
+    --font-size-2xl: 24px;
+    --font-size-3xl: 30px;
+    --font-size-4xl: 36px;
+    --font-size-5xl: 48px;
+    --font-size-6xl: 60px;
+  }
+}
+
+/* Breakpoint XL (Desktop) - 1024px a 1279px */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  :root {
+    --font-size-xs: 12px;
+    --font-size-sm: 14px;
+    --font-size-base: 16px;
+    --font-size-lg: 18px;
+    --font-size-xl: 20px;
+    --font-size-2xl: 24px;
+    --font-size-3xl: 30px;
+    --font-size-4xl: 36px;
+    --font-size-5xl: 48px;
+    --font-size-6xl: 60px;
+    }
+}
+
+/* Breakpoint 2XL (Desktop grande) - 1280px ou mais */
+@media (min-width: 1280px) {
+  :root {
+    --font-size-xs: 12px;
+    --font-size-sm: 14px;
+    --font-size-base: 16px;
+    --font-size-lg: 18px;
+    --font-size-xl: 20px;
+    --font-size-2xl: 24px;
+    --font-size-3xl: 30px;
+    --font-size-4xl: 36px;
+    --font-size-5xl: 48px;
+    --font-size-6xl: 60px;
+
+    --container-padding: 24px;
+    --header-height: 72px;
+    --sidebar-width: 300px;
+  }
+}
