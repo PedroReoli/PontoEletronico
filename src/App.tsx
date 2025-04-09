@@ -15,6 +15,10 @@ import ShiftGroups from "./pages/admin/ShiftGroups"
 import ShiftTypes from "./pages/admin/ShiftTypes"
 import Reports from "./pages/Reports"
 import AdjustmentRequests from "./pages/AdjustmentRequests"
+import Profile from "./pages/Profile"
+import Settings from "./pages/Settings"
+import Notifications from "./pages/Notifications"
+import Help from "./pages/Help"
 import NotFound from "./pages/NotFound"
 import ProtectedRoute from "./components/ProtectedRoute"
 
@@ -125,6 +129,43 @@ function App() {
         }
       />
 
+      {/* Novas rotas adicionadas */}
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <Notifications />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/help"
+        element={
+          <ProtectedRoute>
+            <Help />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Página 404 */}
       <Route path="*" element={<NotFound />} />
     </Routes>
@@ -132,4 +173,3 @@ function App() {
 }
 
 export default App
-

@@ -9,6 +9,9 @@ import "./styles/globals.css"
 // css reutilizaveis abaixo
 import "./styles/passageiro.css"
 import "./styles/passageiro2.css"
+import "./styles/profile.css"
+import "./styles/settings.css"
+import "./styles/profile.css"
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

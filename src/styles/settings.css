@@ -1,0 +1,210 @@
+/* Estilos para a página de configurações */
+.settings-page {
+  padding: var(--spacing-6);
+}
+
+.settings-container {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: var(--spacing-6);
+  margin-top: var(--spacing-6);
+}
+
+@media (max-width: 768px) {
+  .settings-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.settings-sidebar {
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.settings-tabs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.settings-tab {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-4) var(--spacing-5);
+  cursor: pointer;
+  transition: all var(--transition-fast) var(--transition-timing);
+  border-left: 3px solid transparent;
+  color: var(--color-gray-700);
+}
+
+.settings-tab svg {
+  margin-right: var(--spacing-3);
+  color: var(--color-gray-500);
+  transition: color var(--transition-fast) var(--transition-timing);
+}
+
+.settings-tab:hover {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-900);
+}
+
+.settings-tab:hover svg {
+  color: var(--color-gray-700);
+}
+
+.settings-tab.active {
+  background-color: var(--color-gray-100);
+  border-left-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.settings-tab.active svg {
+  color: var(--color-primary);
+}
+
+.settings-content {
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-6);
+}
+
+.settings-section h2 {
+  margin-top: 0;
+  margin-bottom: var(--spacing-2);
+  color: var(--color-gray-900);
+  font-size: var(--font-size-2xl);
+}
+
+.settings-description {
+  color: var(--color-gray-600);
+  margin-bottom: var(--spacing-6);
+}
+
+.settings-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.settings-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-4);
+  border-radius: var(--border-radius-md);
+  background-color: var(--color-gray-50);
+  transition: background-color var(--transition-fast) var(--transition-timing);
+}
+
+.settings-option:hover {
+  background-color: var(--color-gray-100);
+}
+
+.option-info {
+  flex: 1;
+}
+
+.option-info h3 {
+  margin: 0;
+  font-size: var(--font-size-base);
+  color: var(--color-gray-900);
+}
+
+.option-info p {
+  margin: var(--spacing-1) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+}
+
+.option-control {
+  min-width: 120px;
+}
+
+.settings-select {
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--border-radius-md);
+  background-color: var(--color-white);
+  color: var(--color-gray-800);
+  font-size: var(--font-size-base);
+  transition: border-color var(--transition-fast) var(--transition-timing);
+}
+
+.settings-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.1);
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-gray-300);
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: var(--color-primary);
+}
+
+input:focus + .toggle-slider {
+  box-shadow: 0 0 1px var(--color-primary);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(26px);
+}
+
+.settings-actions {
+  margin-top: var(--spacing-8);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.alert {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-4);
+  font-weight: var(--font-weight-medium);
+}
+
+.alert-success {
+  background-color: rgba(32, 201, 151, 0.1);
+  color: #20c997;
+  border-left: 4px solid #20c997;
+}

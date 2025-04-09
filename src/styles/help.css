@@ -1,0 +1,216 @@
+/* Estilos para a página de ajuda */
+.help-page {
+  padding: var(--spacing-6);
+}
+
+.help-header {
+  margin-bottom: var(--spacing-6);
+  text-align: center;
+}
+
+.help-header h1 {
+  margin-bottom: var(--spacing-2);
+}
+
+.help-header p {
+  color: var(--color-gray-600);
+  font-size: var(--font-size-lg);
+}
+
+.help-content {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: var(--spacing-6);
+}
+
+.help-sidebar {
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-4);
+  height: fit-content;
+  position: sticky;
+  top: calc(var(--header-height) + var(--spacing-4));
+}
+
+.help-sidebar h2 {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-2);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.category-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--spacing-6) 0;
+}
+
+.category-list li {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-3);
+  margin-bottom: var(--spacing-1);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast) var(--transition-timing);
+  color: var(--color-gray-700);
+  gap: var(--spacing-2);
+}
+
+.category-list li:hover {
+  background-color: var(--color-gray-100);
+  color: var(--color-primary);
+}
+
+.category-list li.active {
+  background-color: rgba(67, 97, 238, 0.1);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.category-list li svg {
+  color: currentColor;
+}
+
+.help-contact {
+  padding: var(--spacing-4);
+  background-color: rgba(67, 97, 238, 0.05);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid rgba(67, 97, 238, 0.1);
+}
+
+.help-contact h3 {
+  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-2);
+}
+
+.help-contact p {
+  color: var(--color-gray-600);
+  margin-bottom: var(--spacing-4);
+  font-size: var(--font-size-sm);
+}
+
+.help-main {
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-6);
+}
+
+.help-category h2 {
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--spacing-2);
+}
+
+.category-description {
+  color: var(--color-gray-600);
+  margin-bottom: var(--spacing-6);
+  font-size: var(--font-size-lg);
+}
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.faq-item {
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+
+.faq-question {
+  padding: var(--spacing-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background-color: var(--color-white);
+  transition: background-color var(--transition-fast) var(--transition-timing);
+}
+
+.faq-question:hover {
+  background-color: var(--color-gray-50);
+}
+
+.faq-question h3 {
+  font-size: var(--font-size-lg);
+  margin: 0;
+  color: var(--color-gray-800);
+}
+
+.faq-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--transition-fast) var(--transition-timing);
+}
+
+.faq-toggle.open {
+  transform: rotate(180deg);
+}
+
+.faq-answer {
+  padding: var(--spacing-4);
+  background-color: var(--color-gray-50);
+  border-top: 1px solid var(--color-gray-200);
+  overflow: hidden;
+}
+
+.faq-answer p {
+  margin-bottom: var(--spacing-3);
+}
+
+.faq-answer p:last-child {
+  margin-bottom: 0;
+}
+
+.faq-answer ul,
+.faq-answer ol {
+  margin-bottom: var(--spacing-4);
+  padding-left: var(--spacing-6);
+}
+
+.faq-answer li {
+  margin-bottom: var(--spacing-2);
+}
+
+.help-image {
+  margin: var(--spacing-4) 0;
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  border: 1px solid var(--color-gray-200);
+}
+
+.help-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+@media (max-width: 1024px) {
+  .help-content {
+    grid-template-columns: 1fr;
+  }
+
+  .help-sidebar {
+    position: static;
+    margin-bottom: var(--spacing-6);
+  }
+}
+
+@media (max-width: 768px) {
+  .help-page {
+    padding: var(--spacing-4);
+  }
+
+  .help-main {
+    padding: var(--spacing-4);
+  }
+
+  .faq-question h3 {
+    font-size: var(--font-size-base);
+  }
+}
