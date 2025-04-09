@@ -42,6 +42,10 @@ model User {
   endTime          String?       // Formato HH:mm
   breakDuration    Int?          // Em minutos
 
+  // Novas relações adicionadas
+  reports          Report[]
+  auditLogs        AuditLog[]
+
   @@map("users")
 }
 
@@ -163,6 +167,7 @@ model Report {
   updatedAt DateTime @updatedAt
 
   // Relações
+  user      User     @relation(fields: [userId], references: [id])
   userId    String
 
   @@map("reports")
@@ -178,8 +183,8 @@ model AuditLog {
   createdAt DateTime  @default(now())
   
   // Relações
+  user      User      @relation(fields: [userId], references: [id])
   userId    String
 
   @@map("audit_logs")
 }
-

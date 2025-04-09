@@ -13,6 +13,8 @@ import adjustmentRoutes from "./routes/adjustments.js"
 import reportRoutes from "./routes/reports.js"
 import path from "path"
 import { fileURLToPath } from "url"
+// Após as importações, adicionar a importação do módulo fs
+import fs from "fs"
 
 // Configuração do ambiente
 dotenv.config()
@@ -23,6 +25,16 @@ const __dirname = path.dirname(__filename)
 
 // Inicialização do Prisma
 export const prisma = new PrismaClient()
+
+// Após a inicialização do Prisma, adicionar a verificação das variáveis de ambiente
+// Validar variáveis de ambiente necessárias
+const requiredEnvVars = ["JWT_SECRET"]
+const missingEnvVars = requiredEnvVars.filter((varName) => !process.env[varName])
+
+if (missingEnvVars.length > 0) {
+  console.error(`Erro: As seguintes variáveis de ambiente são necessárias: ${missingEnvVars.join(", ")}`)
+  process.exit(1)
+}
 
 // Configuração do Express
 const app = express()
@@ -57,7 +69,15 @@ if (process.env.NODE_ENV === "development") {
 
 app.use(express.json())
 
-// Pasta para uploads
+// Antes de configurar a rota estática para uploads, criar a pasta se não existir
+// Criar pasta de uploads se não existir
+const uploadDir = path.join(__dirname, "../uploads")
+if (!fs.existsSync(uploadDir)) {
+  console.log("Criando pasta de uploads...")
+  fs.mkdirSync(uploadDir, { recursive: true })
+}
+
+// Manter o código existente para a rota estática
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")))
 
 // Rotas da API

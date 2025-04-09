@@ -1,79 +1,54 @@
-/**
- * Utilitário para exportação de dados em formato CSV
- */
+// src/utils/csvExport.ts
 
 /**
- * Converte um array de objetos em uma string CSV
- * @param data Array de objetos a serem convertidos
- * @param headers Cabeçalhos personalizados (opcional)
- * @returns String no formato CSV
+ * Downloads data as a CSV file.
+ * @param data Array of objects to be converted to CSV.
+ * @param filename The name of the file to be downloaded.
+ * @param headers An object where keys are data keys and values are CSV headers.
  */
-export function convertToCSV(data: any[], headers?: Record<string, string>): string {
-  if (data.length === 0) {
-    return ""
+export const downloadCSV = (data: any[], filename: string, headers?: Record<string, string>) => {
+  if (!data || data.length === 0) {
+    console.warn("No data to export.")
+    return
   }
 
-  // Obter as chaves do primeiro objeto para usar como cabeçalhos
-  const objectKeys = Object.keys(data[0])
+  const csvRows = []
 
-  // Criar linha de cabeçalho
-  const headerRow = objectKeys
-    .map((key) => {
-      // Usar cabeçalho personalizado se fornecido, caso contrário usar a chave
-      return headers && headers[key] ? headers[key] : key
+  // Use provided headers or extract keys from the first object
+  const keys = headers ? Object.keys(headers) : Object.keys(data[0])
+
+  // Add CSV headers
+  const headerRow = headers ? Object.values(headers).join(",") : keys.join(",")
+  csvRows.push(headerRow)
+
+  // Add CSV data rows
+  for (const row of data) {
+    const values = keys.map((key) => {
+      const value = row[key]
+      // Handle commas and quotes in values
+      const escapedValue = String(value).replace(/"/g, '""')
+      return `"${escapedValue}"`
     })
-    .join(",")
+    csvRows.push(values.join(","))
+  }
 
-  // Criar linhas de dados
-  const csvRows = data.map((item) => {
-    return objectKeys
-      .map((key) => {
-        // Tratar valores nulos ou indefinidos
-        const value = item[key] === null || item[key] === undefined ? "" : item[key]
+  // Combine rows and create CSV content
+  const csvContent = csvRows.join("\n")
 
-        // Escapar aspas e adicionar aspas ao redor de strings
-        if (typeof value === "string") {
-          return `"${value.replace(/"/g, '""')}"`
-        }
-
-        // Formatar datas
-        if (value instanceof Date) {
-          return `"${value.toLocaleDateString()} ${value.toLocaleTimeString()}"`
-        }
-
-        return value
-      })
-      .join(",")
-  })
-
-  // Juntar cabeçalho e linhas
-  return [headerRow, ...csvRows].join("\n")
-}
-
-/**
- * Faz o download de dados como um arquivo CSV
- * @param data Array de objetos a serem exportados
- * @param filename Nome do arquivo a ser baixado
- * @param headers Cabeçalhos personalizados (opcional)
- */
-export function downloadCSV(data: any[], filename: string, headers?: Record<string, string>): void {
-  const csvContent = convertToCSV(data, headers)
-
-  // Criar um blob com o conteúdo CSV
+  // Create a download link
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
-
-  // Criar URL para o blob
   const url = URL.createObjectURL(blob)
 
-  // Criar elemento de link para download
+  // Create a temporary link element
   const link = document.createElement("a")
-  link.setAttribute("href", url)
+  link.href = url
   link.setAttribute("download", filename)
-  link.style.visibility = "hidden"
-
-  // Adicionar o link ao DOM, clicar nele e removê-lo
   document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-}
 
+  // Trigger the download
+  link.click()
+
+  // Clean up
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
