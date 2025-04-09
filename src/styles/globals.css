@@ -41,8 +41,8 @@ body {
   min-height: 100%;
   padding: var(--space-6) var(--space-4);
   background: radial-gradient(circle at top right, var(--blue-100), transparent 70%),
-              radial-gradient(circle at bottom left, var(--blue-50), transparent 70%),
-              linear-gradient(135deg, white 0%, var(--gray-50) 100%);
+    radial-gradient(circle at bottom left, var(--blue-50), transparent 70%),
+    linear-gradient(135deg, white 0%, var(--gray-50) 100%);
   position: relative;
   overflow: hidden;
 }
@@ -152,6 +152,7 @@ body {
   color: var(--gray-700);
 }
 
+/* Ajustar os estilos para o botão de mostrar/ocultar senha */
 .input-with-icon {
   position: relative;
 }
@@ -166,13 +167,39 @@ body {
   transition: color 0.2s ease;
 }
 
-.input-with-icon input:focus + svg {
+.password-toggle {
+  position: absolute;
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  height: 24px;
+  width: 24px;
+  color: var(--gray-500);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+  z-index: 2;
+}
+
+.password-toggle:hover {
+  color: var(--gray-700);
+}
+
+.password-toggle:focus {
+  outline: none;
   color: var(--blue-500);
 }
 
 .input-with-icon input {
   width: 100%;
   padding: var(--space-4) var(--space-3) var(--space-4) var(--space-10);
+  padding-right: calc(var(--space-10) - var(--space-2));
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
   color: var(--gray-800);
@@ -251,7 +278,7 @@ a:hover {
 }
 
 .btn::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -405,8 +432,8 @@ a:hover {
   min-height: 100%;
   padding: var(--space-6);
   background: radial-gradient(circle at top right, var(--blue-100), transparent 70%),
-              radial-gradient(circle at bottom left, var(--blue-50), transparent 70%),
-              linear-gradient(135deg, white 0%, var(--gray-50) 100%);
+    radial-gradient(circle at bottom left, var(--blue-50), transparent 70%),
+    linear-gradient(135deg, white 0%, var(--gray-50) 100%);
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -505,7 +532,7 @@ a:hover {
   .not-found-content h1 {
     font-size: var(--font-size-4xl);
   }
-  
+
   .btn {
     padding: var(--space-3) var(--space-4);
   }
@@ -808,4 +835,12 @@ a:hover {
     display: none;
   }
 }
-
+/* 
+  __  __       _         ____                       
+ |  \/  | __ _(_)_ __   |  _ \ __ _  __ _  ___  ___ 
+ | |\/| |/ _` | | '_ \  | |_) / _` |/ _` |/ _ \/ __|
+ | |  | | (_| | | | | | |  __/ (_| | (_| |  __/\__ \
+ |_|  |_|\__,_|_|_| |_| |_|   \__,_|\__, |\___||___/
+                                    |___/           
+(pages2)
+*/
