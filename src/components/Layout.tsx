@@ -449,7 +449,8 @@ function Layout({ children }: LayoutProps) {
             </nav>
 
             <div className="sidebar-footer">
-              <div className="app-version">v1.2.0</div>
+              {/* VERSAO PÓS-LANÇAMENTO */}
+              <div className="app-version">v1.0.0</div>
             </div>
           </div>
         </motion.aside>
