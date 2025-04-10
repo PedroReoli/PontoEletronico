@@ -206,7 +206,7 @@ function AdminDashboard() {
                   </svg>
                 </div>
                 <div className="status-content">
-                  <h3>Usuários em Intervalo</h3>
+                  <h3>Funcionários no Intervalo </h3>
                   <motion.p
                     className="status-value"
                     initial={{ scale: 0 }}
