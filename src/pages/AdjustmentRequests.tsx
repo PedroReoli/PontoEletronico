@@ -4,8 +4,6 @@ import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import api from "../services/api"
 import Layout from "../components/Layout"
-// Remover esta linha
-// import "../styles/pages/AdjustmentRequests.css"
 
 interface AdjustmentRequest {
   id: string
@@ -139,222 +137,226 @@ function AdjustmentRequests() {
 
   return (
     <Layout>
-      <div className="adjustments-page">
-        <div className="page-header">
-          <h1>Solicitações de Ajuste</h1>
-          <div className="filter-tabs">
-            <button
-              className={`filter-tab ${filter === "PENDING" ? "active" : ""}`}
-              onClick={() => setFilter("PENDING")}
-            >
-              Pendentes
-            </button>
-            <button
-              className={`filter-tab ${filter === "APPROVED" ? "active" : ""}`}
-              onClick={() => setFilter("APPROVED")}
-            >
-              Aprovados
-            </button>
-            <button
-              className={`filter-tab ${filter === "REJECTED" ? "active" : ""}`}
-              onClick={() => setFilter("REJECTED")}
-            >
-              Rejeitados
-            </button>
-            <button className={`filter-tab ${filter === "ALL" ? "active" : ""}`} onClick={() => setFilter("ALL")}>
-              Todos
-            </button>
-          </div>
-        </div>
+      <section className="adjustment-section">
+        <header className="adjustment-header">
+          <h1 className="adjustment-title">Solicitações de Ajuste</h1>
+          <nav className="adjustment-nav">
+            <ul className="filter-list">
+              <li className="filter-item">
+                <button
+                  className={`filter-button ${filter === "PENDING" ? "active" : ""}`}
+                  onClick={() => setFilter("PENDING")}
+                >
+                  Pendentes
+                </button>
+              </li>
+              <li className="filter-item">
+                <button
+                  className={`filter-button ${filter === "APPROVED" ? "active" : ""}`}
+                  onClick={() => setFilter("APPROVED")}
+                >
+                  Aprovados
+                </button>
+              </li>
+              <li className="filter-item">
+                <button
+                  className={`filter-button ${filter === "REJECTED" ? "active" : ""}`}
+                  onClick={() => setFilter("REJECTED")}
+                >
+                  Rejeitados
+                </button>
+              </li>
+              <li className="filter-item">
+                <button
+                  className={`filter-button ${filter === "ALL" ? "active" : ""}`}
+                  onClick={() => setFilter("ALL")}
+                >
+                  Todos
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </header>
 
-        <div className="card adjustments-card">
+        <article className="adjustment-content">
           {loading ? (
-            <div className="loading-container">
-              <svg
-                className="animate-spin"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="12" y1="2" x2="12" y2="6"></line>
-                <line x1="12" y1="18" x2="12" y2="22"></line>
-                <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
-                <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
-                <line x1="2" y1="12" x2="6" y2="12"></line>
-                <line x1="18" y1="12" x2="22" y2="12"></line>
-                <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
-                <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
-              </svg>
-              <p>Carregando solicitações...</p>
+            <div className="loading-state">
+              <div className="spinner"></div>
+              <p className="loading-text">Carregando solicitações...</p>
             </div>
           ) : adjustments.length === 0 ? (
             <div className="empty-state">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="48"
-                height="48"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-                <line x1="9" y1="9" x2="9.01" y2="9"></line>
-                <line x1="15" y1="9" x2="15.01" y2="9"></line>
-              </svg>
-              <p>Nenhuma solicitação {filter === "ALL" ? "" : getStatusText(filter).toLowerCase()} encontrada</p>
+              <div className="empty-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="48"
+                  height="48"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                  <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                  <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                </svg>
+              </div>
+              <p className="empty-text">
+                Nenhuma solicitação {filter === "ALL" ? "" : getStatusText(filter).toLowerCase()} encontrada
+              </p>
             </div>
           ) : (
-            <div className="adjustments-table-container">
-              <table className="adjustments-table">
-                <thead>
-                  <tr>
-                    <th>Funcionário</th>
-                    <th>Data</th>
-                    <th>Tipo</th>
-                    <th>Horário Solicitado</th>
-                    <th>Status</th>
-                    <th>Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {adjustments.map((adjustment) => (
-                    <tr key={adjustment.id}>
-                      <td>{adjustment.userName}</td>
-                      <td>{format(new Date(adjustment.date), "dd/MM/yyyy")}</td>
-                      <td>{getEntryTypeText(adjustment.entryType)}</td>
-                      <td>{adjustment.requestedTime}</td>
-                      <td>
-                        <span className={`status-badge ${getStatusBadgeClass(adjustment.status)}`}>
+            <div className="adjustment-list-container">
+              <ul className="adjustment-list">
+                {adjustments.map((adjustment) => (
+                  <li key={adjustment.id} className="adjustment-item">
+                    <div className="adjustment-card">
+                      <div className="adjustment-card-header">
+                        <h3 className="adjustment-user">{adjustment.userName}</h3>
+                        <span className={`adjustment-status ${getStatusBadgeClass(adjustment.status)}`}>
                           {getStatusText(adjustment.status)}
                         </span>
-                      </td>
-                      <td>
-                        <div className="action-buttons">
-                          <button
-                            className="btn-icon"
-                            title="Ver detalhes"
-                            onClick={() => handleViewDetails(adjustment)}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="18"
-                              height="18"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                              <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                          </button>
-                          {adjustment.status === "PENDING" && (
-                            <>
-                              <button
-                                className="btn-icon approve"
-                                title="Aprovar"
-                                onClick={() => handleViewDetails(adjustment)}
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="18"
-                                  height="18"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                              </button>
-                              <button
-                                className="btn-icon reject"
-                                title="Rejeitar"
-                                onClick={() => handleViewDetails(adjustment)}
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="18"
-                                  height="18"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                                </svg>
-                              </button>
-                            </>
-                          )}
+                      </div>
+                      <div className="adjustment-card-body">
+                        <div className="adjustment-info">
+                          <div className="info-group">
+                            <span className="info-label">Data:</span>
+                            <span className="info-value">{format(new Date(adjustment.date), "dd/MM/yyyy")}</span>
+                          </div>
+                          <div className="info-group">
+                            <span className="info-label">Tipo:</span>
+                            <span className="info-value">{getEntryTypeText(adjustment.entryType)}</span>
+                          </div>
+                          <div className="info-group">
+                            <span className="info-label">Horário:</span>
+                            <span className="info-value">{adjustment.requestedTime}</span>
+                          </div>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                      <div className="adjustment-card-footer">
+                        <button
+                          className="action-button view"
+                          onClick={() => handleViewDetails(adjustment)}
+                          title="Ver detalhes"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                          </svg>
+                          <span>Detalhes</span>
+                        </button>
+                        {adjustment.status === "PENDING" && (
+                          <>
+                            <button
+                              className="action-button approve"
+                              onClick={() => handleViewDetails(adjustment)}
+                              title="Aprovar"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                              <span>Aprovar</span>
+                            </button>
+                            <button
+                              className="action-button reject"
+                              onClick={() => handleViewDetails(adjustment)}
+                              title="Rejeitar"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                              </svg>
+                              <span>Rejeitar</span>
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
-        </div>
-      </div>
+        </article>
+      </section>
 
       {/* Modal de Detalhes */}
       {showModal && selectedAdjustment && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h2>Detalhes da Solicitação</h2>
-              <button className="btn-close" onClick={handleCloseModal}>
-                ×
+        <div className="modal-backdrop">
+          <div className="modal-container">
+            <header className="modal-header">
+              <h2 className="modal-title">Detalhes da Solicitação</h2>
+              <button className="modal-close" onClick={handleCloseModal} aria-label="Fechar">
+                &times;
               </button>
-            </div>
-            <div className="modal-body">
-              <div className="detail-group">
-                <span className="detail-label">Funcionário:</span>
-                <span className="detail-value">{selectedAdjustment.userName}</span>
+            </header>
+            <div className="modal-content">
+              <div className="detail-section">
+                <div className="detail-row">
+                  <span className="detail-label">Funcionário:</span>
+                  <span className="detail-value">{selectedAdjustment.userName}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Data:</span>
+                  <span className="detail-value">{format(new Date(selectedAdjustment.date), "dd/MM/yyyy")}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Tipo de Registro:</span>
+                  <span className="detail-value">{getEntryTypeText(selectedAdjustment.entryType)}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Horário Solicitado:</span>
+                  <span className="detail-value">{selectedAdjustment.requestedTime}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Status:</span>
+                  <span className={`status-tag ${getStatusBadgeClass(selectedAdjustment.status)}`}>
+                    {getStatusText(selectedAdjustment.status)}
+                  </span>
+                </div>
               </div>
-              <div className="detail-group">
-                <span className="detail-label">Data:</span>
-                <span className="detail-value">{format(new Date(selectedAdjustment.date), "dd/MM/yyyy")}</span>
-              </div>
-              <div className="detail-group">
-                <span className="detail-label">Tipo de Registro:</span>
-                <span className="detail-value">{getEntryTypeText(selectedAdjustment.entryType)}</span>
-              </div>
-              <div className="detail-group">
-                <span className="detail-label">Horário Solicitado:</span>
-                <span className="detail-value">{selectedAdjustment.requestedTime}</span>
-              </div>
-              <div className="detail-group">
-                <span className="detail-label">Status:</span>
-                <span className={`status-badge ${getStatusBadgeClass(selectedAdjustment.status)}`}>
-                  {getStatusText(selectedAdjustment.status)}
-                </span>
-              </div>
-              <div className="detail-group">
-                <span className="detail-label">Motivo:</span>
-                <p className="detail-reason">{selectedAdjustment.reason}</p>
+
+              <div className="reason-section">
+                <h3 className="reason-title">Motivo da Solicitação</h3>
+                <div className="reason-content">{selectedAdjustment.reason}</div>
               </div>
 
               {selectedAdjustment.attachmentUrl && (
-                <div className="detail-group">
-                  <span className="detail-label">Anexo:</span>
+                <div className="attachment-section">
+                  <h3 className="attachment-title">Anexo</h3>
                   <a
                     href={selectedAdjustment.attachmentUrl}
                     target="_blank"
@@ -376,51 +378,68 @@ function AdjustmentRequests() {
                       <polyline points="7 10 12 15 17 10"></polyline>
                       <line x1="12" y1="15" x2="12" y2="3"></line>
                     </svg>
-                    Ver anexo
+                    Ver documento anexado
                   </a>
                 </div>
               )}
 
               {selectedAdjustment.status !== "PENDING" && (
-                <>
-                  <div className="detail-group">
-                    <span className="detail-label">Resposta:</span>
-                    <p className="detail-reason">{selectedAdjustment.responseComment || "Sem comentários"}</p>
+                <div className="response-section">
+                  <h3 className="response-title">Resposta</h3>
+                  <div className="response-content">
+                    {selectedAdjustment.responseComment || "Sem comentários adicionais."}
                   </div>
                   {selectedAdjustment.responseDate && (
-                    <div className="detail-group">
-                      <span className="detail-label">Data da resposta:</span>
-                      <span className="detail-value">
-                        {format(new Date(selectedAdjustment.responseDate), "dd/MM/yyyy HH:mm")}
-                      </span>
+                    <div className="response-date">
+                      Respondido em {format(new Date(selectedAdjustment.responseDate), "dd/MM/yyyy HH:mm")}
                     </div>
                   )}
-                </>
+                </div>
               )}
 
               {selectedAdjustment.status === "PENDING" && (
-                <div className="response-form">
-                  <label htmlFor="responseComment">Comentário (opcional):</label>
-                  <textarea
-                    id="responseComment"
-                    value={responseComment}
-                    onChange={(e) => setResponseComment(e.target.value)}
-                    placeholder="Adicione um comentário para sua decisão..."
-                    rows={3}
-                  ></textarea>
+                <form className="response-form">
+                  <div className="form-group">
+                    <label htmlFor="responseComment" className="form-label">
+                      Comentário (opcional):
+                    </label>
+                    <textarea
+                      id="responseComment"
+                      className="form-textarea"
+                      value={responseComment}
+                      onChange={(e) => setResponseComment(e.target.value)}
+                      placeholder="Adicione um comentário para sua decisão..."
+                      rows={3}
+                    ></textarea>
+                  </div>
 
-                  <div className="modal-actions">
-                    <button className="btn btn-secondary" onClick={handleCloseModal} disabled={actionLoading}>
+                  <div className="form-actions">
+                    <button
+                      type="button"
+                      className="form-button secondary"
+                      onClick={handleCloseModal}
+                      disabled={actionLoading}
+                    >
                       Cancelar
                     </button>
-                    <button className="btn btn-danger" onClick={handleReject} disabled={actionLoading}>
+                    <button
+                      type="button"
+                      className="form-button danger"
+                      onClick={handleReject}
+                      disabled={actionLoading}
+                    >
                       {actionLoading ? "Processando..." : "Rejeitar"}
                     </button>
-                    <button className="btn btn-success" onClick={handleApprove} disabled={actionLoading}>
+                    <button
+                      type="button"
+                      className="form-button success"
+                      onClick={handleApprove}
+                      disabled={actionLoading}
+                    >
                       {actionLoading ? "Processando..." : "Aprovar"}
                     </button>
                   </div>
-                </div>
+                </form>
               )}
             </div>
           </div>
@@ -431,4 +450,3 @@ function AdjustmentRequests() {
 }
 
 export default AdjustmentRequests
-
