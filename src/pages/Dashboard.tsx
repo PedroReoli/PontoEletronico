@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import api from "../services/api"
-import Layout from "../components/Layout"
-import { Award, Calendar, Gift, MessageSquare } from 'lucide-react'
-import { getRandomDayMessage } from "../utils/dailyMessages"
+import api from "@/services/api"
+import Layout from "@/components/Layout"
+import { Award, Calendar, Gift, MessageSquare } from "lucide-react"
+import { getRandomDayMessage } from "@/utils/dailyMessages"
+import { Avatar } from "@/components/ui/Avatar"
+import { Card, CardHeader, CardContent } from "@/components/ui/Card"
+import { Badge } from "@/components/ui/Badge"
 
 // Interfaces
 interface User {
@@ -56,11 +59,11 @@ function Dashboard() {
           ])
 
           setRankingUsers(rankingResponse.data)
-          
+
           // Ordenar aniversariantes por dia do mês
           const sortedBirthdays = birthdaysResponse.data.sort((a: Birthday, b: Birthday) => a.day - b.day)
           setBirthdays(sortedBirthdays)
-          
+
           setCurrentUser(userResponse.data)
         } catch (error) {
           console.error("Erro ao buscar dados da API, usando dados mockados:", error)
@@ -143,117 +146,131 @@ function Dashboard() {
 
   return (
     <Layout>
-      <div className="dashboard">
-        <header className="dashboard-header">
-          <div className="header-content">
-            <motion.div
-              className="welcome-section"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <h1>Olá, {currentUser?.name.split(" ")[0] || "Colaborador"}!</h1>
-              <p className="date-display">{formatDate(currentTime)}</p>
-            </motion.div>
-          </div>
+      <div className="w-full max-w-7xl mx-auto px-4">
+        <header className="py-6 mb-6">
+          <motion.div
+            className="flex flex-col"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+              Olá, {currentUser?.name.split(" ")[0] || "Colaborador"}!
+            </h1>
+            <p className="text-gray-500 mt-1">{formatDate(currentTime)}</p>
+          </motion.div>
         </header>
 
-        <div className="dashboard-grid">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Mural de Mensagem do Dia */}
-          <motion.section
-            className="message-section"
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
+            className="lg:col-span-3"
           >
-            <div className="section-header">
-              <h2>
-                <MessageSquare size={18} /> Mensagem do Dia
-              </h2>
-            </div>
-            <div className="message-container">
-              <div className="message-content">
-                <p>{dayMessage}</p>
-              </div>
-            </div>
-          </motion.section>
+            <Card>
+              <CardHeader>
+                <MessageSquare size={18} className="text-blue-500" />
+                <h2 className="text-lg font-semibold">Mensagem do Dia</h2>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-blue-50 rounded-md p-4 italic text-gray-700">
+                  <p>{dayMessage}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Seção de Ranking Semanal */}
-          <motion.section
-            className="ranking-section"
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, delay: 0.1 }}
+            className="md:col-span-1"
           >
-            <div className="section-header">
-              <h2>
-                <Award size={18} /> Ranking Semanal
-              </h2>
-            </div>
-            <div className="ranking-list">
-              {rankingUsers.map((user) => (
-                <div key={user.id} className={`ranking-item position-${user.position}`}>
-                  <div className="ranking-position">
-                    {user.position === 1 && "🥇"}
-                    {user.position === 2 && "🥈"}
-                    {user.position === 3 && "🥉"}
-                    {user.position > 3 && `#${user.position}`}
-                  </div>
-                  <div className="ranking-user">
-                    {user.avatar ? (
-                      <img src={user.avatar || "/placeholder.svg"} alt={user.name} className="ranking-avatar" />
-                    ) : (
-                      <div className="ranking-avatar-placeholder">{user.name.charAt(0)}</div>
-                    )}
-                    <span className="ranking-name">{user.name}</span>
-                  </div>
-                  <div className="ranking-score">{user.score} pts</div>
+            <Card className="h-full">
+              <CardHeader>
+                <Award size={18} className="text-blue-500" />
+                <h2 className="text-lg font-semibold">Ranking Semanal</h2>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="divide-y divide-gray-100">
+                  {rankingUsers.map((user) => (
+                    <div
+                      key={user.id}
+                      className={`flex items-center justify-between p-4 ${user.position === 1 ? "bg-blue-50" : ""}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex-shrink-0 w-8 text-center">
+                          {user.position === 1 && <span className="text-xl">🥇</span>}
+                          {user.position === 2 && <span className="text-xl">🥈</span>}
+                          {user.position === 3 && <span className="text-xl">🥉</span>}
+                          {user.position > 3 && (
+                            <span className="text-sm font-medium text-gray-500">#{user.position}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Avatar src={user.avatar} alt={user.name} className="w-8 h-8" />
+                          <span className="font-medium text-sm">{user.name}</span>
+                        </div>
+                      </div>
+                      <div className="text-sm font-semibold text-blue-600">{user.score} pts</div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </motion.section>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Seção de Aniversariantes */}
-          <motion.section
-            className="birthday-section"
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, delay: 0.2 }}
+            className="md:col-span-1"
           >
-            <div className="section-header">
-              <h2>
-                <Calendar size={18} /> Aniversariantes do Mês
-              </h2>
-            </div>
-
-            {birthdays.length > 0 ? (
-              <div className="birthday-list">
-                {birthdays.map((birthday) => (
-                  <div key={birthday.id} className={`birthday-item ${birthday.isToday ? "today" : ""}`}>
-                    <div className="birthday-date-badge">{birthday.date}</div>
-                    <div className="birthday-user">
-                      {birthday.avatar ? (
-                        <img src={birthday.avatar || "/placeholder.svg"} alt={birthday.name} className="birthday-avatar" />
-                      ) : (
-                        <div className="birthday-avatar-placeholder">{birthday.name.charAt(0)}</div>
-                      )}
-                      <span className="birthday-name">{birthday.name}</span>
-                    </div>
-                    {birthday.isToday && (
-                      <div className="birthday-today">
-                        <Gift size={16} />
-                        <span>Hoje!</span>
+            <Card className="h-full">
+              <CardHeader>
+                <Calendar size={18} className="text-blue-500" />
+                <h2 className="text-lg font-semibold">Aniversariantes do Mês</h2>
+              </CardHeader>
+              <CardContent className="p-0">
+                {birthdays.length > 0 ? (
+                  <div className="divide-y divide-gray-100">
+                    {birthdays.map((birthday) => (
+                      <div
+                        key={birthday.id}
+                        className={`flex items-center justify-between p-4 ${
+                          birthday.isToday ? "bg-success-light" : ""
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Badge variant={birthday.isToday ? "success" : "default"} className="w-12 text-center">
+                            {birthday.date}
+                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Avatar src={birthday.avatar} alt={birthday.name} className="w-8 h-8" />
+                            <span className="font-medium text-sm">{birthday.name}</span>
+                          </div>
+                        </div>
+                        {birthday.isToday && (
+                          <div className="flex items-center gap-1 text-success-dark">
+                            <Gift size={16} />
+                            <span className="text-xs font-medium">Hoje!</span>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="no-birthdays">
-                <p>Nenhum aniversariante este mês</p>
-              </div>
-            )}
-          </motion.section>
+                ) : (
+                  <div className="p-4 text-center text-gray-500">
+                    <p>Nenhum aniversariante este mês</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       </div>
     </Layout>

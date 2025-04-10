@@ -1,33 +1,28 @@
-import React from "react";
-import { motion } from "framer-motion";
+import type { ReactNode } from "react"
 
 interface CardProps {
-  children: React.ReactNode;
-  className?: string;
-  title?: string;
-  hoverable?: boolean;
+  children: ReactNode
+  className?: string
 }
 
-const Card: React.FC<CardProps> = ({
-  children,
-  className = "",
-  title,
-  hoverable = true,
-}) => {
-  return (
-    <motion.div
-      className={`bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden ${className}`}
-      whileHover={hoverable ? { y: -4, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" } : {}}
-      transition={{ duration: 0.2 }}
-    >
-      {title && (
-        <div className="px-4 py-3 border-b border-gray-100">
-          <h3 className="text-base font-medium text-gray-800">{title}</h3>
-        </div>
-      )}
-      <div className="p-4">{children}</div>
-    </motion.div>
-  );
-};
+export function Card({ children, className = "" }: CardProps) {
+  return <section className={`bg-white rounded-lg shadow-md overflow-hidden ${className}`}>{children}</section>
+}
 
-export default Card;
+interface CardHeaderProps {
+  children: ReactNode
+  className?: string
+}
+
+export function CardHeader({ children, className = "" }: CardHeaderProps) {
+  return <div className={`flex items-center gap-2 border-b border-gray-200 p-4 ${className}`}>{children}</div>
+}
+
+interface CardContentProps {
+  children: ReactNode
+  className?: string
+}
+
+export function CardContent({ children, className = "" }: CardContentProps) {
+  return <div className={`p-4 ${className}`}>{children}</div>
+}

@@ -1,11 +1,24 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Link } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { useAuth } from "../hooks/useAuth"
 import api from "../services/api"
-// import "./Topbar.css"
+import {
+  Bell,
+  Menu,
+  User,
+  Settings,
+  HelpCircle,
+  LogOut,
+  Info,
+  CheckCircle,
+  AlertTriangle,
+  XCircle,
+  X,
+  Clock,
+} from "lucide-react"
 
 interface TopbarProps {
   toggleSidebar: () => void
@@ -53,7 +66,7 @@ const Topbar = ({ toggleSidebar, sidebarOpen }: TopbarProps) => {
     try {
       await api.put(`/notifications/${id}/read`)
       setNotifications(
-        notifications.map((notification) => (notification.id === id ? { ...notification, read: true } : notification))
+        notifications.map((notification) => (notification.id === id ? { ...notification, read: true } : notification)),
       )
     } catch (error) {
       console.error("Erro ao marcar notificação como lida:", error)
@@ -184,440 +197,275 @@ const Topbar = ({ toggleSidebar, sidebarOpen }: TopbarProps) => {
 
   // Obter ícone para o tipo de notificação
   const getNotificationIcon = (type: string) => {
+    const iconProps = { size: 16, className: "flex-shrink-0" }
+
     switch (type) {
       case "INFO":
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="notification-icon info"
-          >
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="16" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-          </svg>
-        )
+        return <Info {...iconProps} className="text-blue-500" />
       case "SUCCESS":
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="notification-icon success"
-          >
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-          </svg>
-        )
+        return <CheckCircle {...iconProps} className="text-green-500" />
       case "WARNING":
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="notification-icon warning"
-          >
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-            <line x1="12" y1="9" x2="12" y2="13"></line>
-            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-          </svg>
-        )
+        return <AlertTriangle {...iconProps} className="text-amber-500" />
       case "ERROR":
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="notification-icon error"
-          >
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="15" y1="9" x2="9" y2="15"></line>
-            <line x1="9" y1="9" x2="15" y2="15"></line>
-          </svg>
-        )
+        return <XCircle {...iconProps} className="text-red-500" />
       default:
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
-        )
+        return <Clock {...iconProps} className="text-gray-500" />
     }
   }
 
   const unreadNotificationsCount = notifications.filter((n) => !n.read).length
 
   return (
-    <header className="topbar">
-      <div className="topbar-container">
-        {/* Left section */}
-        <div className="topbar-left">
-          <button
-            id="sidebar-toggle"
-            onClick={toggleSidebar}
-            className="sidebar-toggle"
-            aria-label="Alternar menu lateral"
-            aria-expanded={sidebarOpen}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              {sidebarOpen ? <path d="M6 18L18 6M6 6l12 12" /> : <path d="M3 12h18M3 6h18M3 18h18" />}
-            </svg>
-          </button>
-
-          <Link to="/dashboard" className="topbar-logo">
-            <motion.div className="logo-icon" whileHover={{ rotate: 360 }} transition={{ duration: 0.5 }}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-              </svg>
-            </motion.div>
-            <span className="logo-text">Controle de Ponto</span>
-          </Link>
-        </div>
-
-        {/* Right section */}
-        <div className="topbar-right">
-          {/* Notifications */}
-          <div className="notifications-container">
+    <header className="sticky top-0 z-10 flex-shrink-0 bg-white border-b border-gray-200 shadow-sm">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          {/* Left section - Mobile menu button */}
+          <div className="flex items-center lg:hidden">
             <button
-              id="notification-button"
-              className="notification-button"
-              aria-label="Notificações"
-              aria-haspopup="true"
-              aria-expanded={notificationsOpen}
-              onClick={toggleNotifications}
+              id="sidebar-toggle"
+              onClick={toggleSidebar}
+              className="inline-flex items-center justify-center rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Alternar menu lateral"
+              aria-expanded={sidebarOpen}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-              </svg>
-              {unreadNotificationsCount > 0 && (
-                <span
-                  className="notification-badge"
-                  aria-label={`${unreadNotificationsCount} notificações não lidas`}
-                >
-                  {unreadNotificationsCount > 9 ? "9+" : unreadNotificationsCount}
-                </span>
-              )}
+              <Menu size={24} />
             </button>
-
-            <AnimatePresence>
-              {notificationsOpen && (
-                <motion.div
-                  ref={notificationsRef}
-                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
-                  className="notifications-dropdown"
-                  role="menu"
-                  aria-label="Notificações"
-                >
-                  <div className="notifications-header">
-                    <h3>Notificações</h3>
-                    {unreadNotificationsCount > 0 && (
-                      <button onClick={markAllAsRead} className="mark-all-read">
-                        Marcar todas como lidas
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="notifications-list">
-                    {notificationsLoading ? (
-                      <div className="notifications-loading">
-                        <svg
-                          className="animate-spin"
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <line x1="12" y1="2" x2="12" y2="6"></line>
-                          <line x1="12" y1="18" x2="12" y2="22"></line>
-                          <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
-                          <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
-                          <line x1="2" y1="12" x2="6" y2="12"></line>
-                          <line x1="18" y1="12" x2="22" y2="12"></line>
-                          <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
-                          <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
-                        </svg>
-                        <p>Carregando notificações...</p>
-                      </div>
-                    ) : notificationsError ? (
-                      <div className="notifications-error">
-                        <p>{notificationsError}</p>
-                        <button onClick={fetchNotifications} className="btn-retry">
-                          Tentar novamente
-                        </button>
-                      </div>
-                    ) : notifications.length > 0 ? (
-                      notifications.map((notification) => (
-                        <div
-                          key={notification.id}
-                          className={`notification-item ${notification.read ? "read" : "unread"}`}
-                          onClick={() => !notification.read && markAsRead(notification.id)}
-                        >
-                          <div className="notification-icon">{getNotificationIcon(notification.type)}</div>
-                          <div className="notification-content">
-                            <p className="notification-title">{notification.title}</p>
-                            <p className="notification-message">{notification.message}</p>
-                            <span className="notification-time">{formatRelativeTime(notification.createdAt)}</span>
-                          </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              removeNotification(notification.id)
-                            }}
-                            className="notification-dismiss"
-                            aria-label="Remover notificação"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="14"
-                              height="14"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <line x1="18" y1="6" x2="6" y2="18"></line>
-                              <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="no-notifications">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <circle cx="12" cy="12" r="10"></circle>
-                          <line x1="8" y1="12" x2="16" y2="12"></line>
-                        </svg>
-                        <p>Não há notificações</p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="notifications-footer">
-                    <Link to="/notifications" className="view-all" onClick={() => setNotificationsOpen(false)}>
-                      Ver todas as notificações
-                    </Link>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
 
-          {/* Profile dropdown */}
-          <div className="profile-container">
-            <button
-              id="profile-button"
-              onClick={toggleProfileDropdown}
-              className="profile-button"
-              aria-label="Menu do usuário"
-              aria-haspopup="true"
-              aria-expanded={profileDropdownOpen}
-            >
-              <div className="user-details">
-                <span className="user-name">{user?.name}</span>
-                <span className="user-role">
-                  {user?.role === "ADMIN" && "Administrador"}
-                  {user?.role === "MANAGER" && "Gestor"}
-                  {user?.role === "EMPLOYEE" && "Funcionário"}
-                </span>
-              </div>
-              <motion.div className="user-avatar" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                {user ? getInitials(user.name) : "?"}
-              </motion.div>
-            </button>
+          {/* Page title - Only visible on desktop */}
+          <div className="hidden lg:flex lg:items-center lg:space-x-4">
+            <h1 className="text-xl font-semibold text-gray-900">Controle de Ponto</h1>
+          </div>
 
-            <AnimatePresence>
-              {profileDropdownOpen && (
-                <motion.div
-                  ref={profileDropdownRef}
-                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
-                  className="profile-dropdown"
-                  role="menu"
-                  aria-label="Menu do usuário"
-                >
-                  <div className="profile-header">
-                    <div className="profile-avatar">
-                      <div className="user-avatar large">{user ? getInitials(user.name) : "?"}</div>
-                    </div>
-                    <div className="profile-info">
-                      <h4 className="profile-name">{user?.name}</h4>
-                      <p className="profile-email">{user?.email}</p>
-                    </div>
-                  </div>
-
-                  <div className="profile-menu">
-                    <Link to="/profile" className="profile-item" onClick={() => setProfileDropdownOpen(false)}>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                      </svg>
-                      <span>Seu Perfil</span>
-                    </Link>
-                    <Link to="/settings" className="profile-item" onClick={() => setProfileDropdownOpen(false)}>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                      </svg>
-                      <span>Configurações</span>
-                    </Link>
-                    <Link to="/help" className="profile-item" onClick={() => setProfileDropdownOpen(false)}>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                      </svg>
-                      <span>Ajuda</span>
-                    </Link>
-                  </div>
-
-                  <div className="profile-divider"></div>
-
-                  <button
-                    onClick={() => {
-                      setProfileDropdownOpen(false)
-                      logout()
-                    }}
-                    className="profile-item logout"
+          {/* Right section */}
+          <div className="flex items-center space-x-4">
+            {/* Notifications */}
+            <div className="relative">
+              <button
+                id="notification-button"
+                className="relative rounded-full p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Notificações"
+                aria-haspopup="true"
+                aria-expanded={notificationsOpen}
+                onClick={toggleNotifications}
+              >
+                <Bell size={20} />
+                {unreadNotificationsCount > 0 && (
+                  <span
+                    className="notification-badge"
+                    aria-label={`${unreadNotificationsCount} notificações não lidas`}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                      <polyline points="16 17 21 12 16 7"></polyline>
-                      <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    <span>Sair</span>
-                  </button>
+                    {unreadNotificationsCount > 9 ? "9+" : unreadNotificationsCount}
+                  </span>
+                )}
+              </button>
+
+              <AnimatePresence>
+                {notificationsOpen && (
+                  <motion.div
+                    ref={notificationsRef}
+                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute right-0 mt-2 w-80 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                    role="menu"
+                    aria-orientation="vertical"
+                    aria-labelledby="notification-button"
+                  >
+                    <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+                      <h3 className="text-sm font-medium text-gray-900">Notificações</h3>
+                      {unreadNotificationsCount > 0 && (
+                        <button
+                          onClick={markAllAsRead}
+                          className="text-xs font-medium text-blue-600 hover:text-blue-800"
+                        >
+                          Marcar todas como lidas
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="max-h-72 overflow-y-auto custom-scrollbar">
+                      {notificationsLoading ? (
+                        <div className="flex flex-col items-center justify-center py-6 px-4 text-gray-500">
+                          <svg
+                            className="animate-spin h-8 w-8 mb-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                          <p className="text-sm">Carregando notificações...</p>
+                        </div>
+                      ) : notificationsError ? (
+                        <div className="flex flex-col items-center justify-center py-6 px-4">
+                          <p className="text-sm text-gray-600 mb-2">{notificationsError}</p>
+                          <button
+                            onClick={fetchNotifications}
+                            className="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                          >
+                            Tentar novamente
+                          </button>
+                        </div>
+                      ) : notifications.length > 0 ? (
+                        notifications.map((notification) => (
+                          <div
+                            key={notification.id}
+                            className={`flex items-start gap-3 p-3 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer ${
+                              notification.read ? "opacity-75" : "bg-blue-50/30"
+                            }`}
+                            onClick={() => !notification.read && markAsRead(notification.id)}
+                          >
+                            <div className="mt-1">{getNotificationIcon(notification.type)}</div>
+                            <div className="flex-1 min-w-0">
+                              <p
+                                className={`text-sm font-medium ${notification.read ? "text-gray-700" : "text-gray-900"}`}
+                              >
+                                {notification.title}
+                              </p>
+                              <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{notification.message}</p>
+                              <span className="text-xs text-gray-500 mt-1 block">
+                                {formatRelativeTime(notification.createdAt)}
+                              </span>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                removeNotification(notification.id)
+                              }}
+                              className="p-1 rounded-full hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-colors"
+                              aria-label="Remover notificação"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-8 px-4 text-gray-500">
+                          <Bell size={24} className="mb-2" />
+                          <p className="text-sm">Não há notificações</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="border-t border-gray-100 py-2 px-4">
+                      <Link
+                        to="/notifications"
+                        className="block text-center text-xs font-medium text-blue-600 hover:text-blue-800"
+                        onClick={() => setNotificationsOpen(false)}
+                      >
+                        Ver todas as notificações
+                      </Link>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Profile dropdown */}
+            <div className="relative">
+              <button
+                id="profile-button"
+                onClick={toggleProfileDropdown}
+                className="flex items-center space-x-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                aria-label="Menu do usuário"
+                aria-haspopup="true"
+                aria-expanded={profileDropdownOpen}
+              >
+                <div className="hidden md:block text-right">
+                  <span className="block text-sm font-medium text-gray-900">{user?.name?.split(" ")[0]}</span>
+                  <span className="block text-xs text-gray-500">
+                    {user?.role === "ADMIN" && "Administrador"}
+                    {user?.role === "MANAGER" && "Gestor"}
+                    {user?.role === "EMPLOYEE" && "Funcionário"}
+                  </span>
+                </div>
+                <motion.div className="user-avatar w-8 h-8" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  {user ? getInitials(user.name) : "?"}
                 </motion.div>
-              )}
-            </AnimatePresence>
+              </button>
+
+              <AnimatePresence>
+                {profileDropdownOpen && (
+                  <motion.div
+                    ref={profileDropdownRef}
+                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute right-0 mt-2 w-64 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                    role="menu"
+                    aria-orientation="vertical"
+                    aria-labelledby="profile-button"
+                  >
+                    <div className="flex items-center space-x-3 p-4 border-b border-gray-100">
+                      <div className="user-avatar w-12 h-12 text-base">{user ? getInitials(user.name) : "?"}</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                      </div>
+                    </div>
+
+                    <div className="py-2">
+                      <Link
+                        to="/profile"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setProfileDropdownOpen(false)}
+                        role="menuitem"
+                      >
+                        <User size={16} className="mr-3 text-gray-500" />
+                        <span>Seu Perfil</span>
+                      </Link>
+                      <Link
+                        to="/settings"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setProfileDropdownOpen(false)}
+                        role="menuitem"
+                      >
+                        <Settings size={16} className="mr-3 text-gray-500" />
+                        <span>Configurações</span>
+                      </Link>
+                      <Link
+                        to="/help"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setProfileDropdownOpen(false)}
+                        role="menuitem"
+                      >
+                        <HelpCircle size={16} className="mr-3 text-gray-500" />
+                        <span>Ajuda</span>
+                      </Link>
+                    </div>
+
+                    <div className="py-1 border-t border-gray-100">
+                      <button
+                        onClick={() => {
+                          setProfileDropdownOpen(false)
+                          logout()
+                        }}
+                        className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        <LogOut size={16} className="mr-3" />
+                        <span>Sair</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
       </div>
