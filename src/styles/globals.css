@@ -1578,10 +1578,6 @@ a:hover {
     display: none;
   }
 }
-/* COMPONENTE.CSS */
-/* EmployeeDashboard.tsx ---- Registro de Ponto */
-
-
 /* Estilos para o Dashboard do Funcionário */
 .employee-dashboard {
   width: 100%;
@@ -7753,3 +7749,5 @@ a:hover {
     right: var(--space-2);
   }
 }
+/* COMPONENTE.CSS */
+/* EmployeeDashboard.tsx ---- Registro de Ponto */

@@ -3,12 +3,17 @@
 import { useState, useEffect, useRef } from "react"
 import { format, differenceInMinutes, parseISO } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { motion, AnimatePresence } from "framer-motion"
 import api from "../services/api"
 import { useAuth } from "../hooks/useAuth"
 import { useGeolocation } from "../hooks/useGeolocation"
 import Layout from "../components/Layout"
-import { motion, AnimatePresence } from "framer-motion"
-// import "./employee-dashboard.css"
+import Button from "../components/ui/Button"
+import Card from "../components/ui/Card"
+import Modal from "../components/ui/Modal"
+import Camera from "../components/ui/Camera"
+import LocationOption from "../components/ui/LocationOption"
+import { Home, Building2, MapPin, CameraIcon } from "lucide-react"
 
 interface TimeEntry {
   id: string
@@ -19,6 +24,8 @@ interface TimeEntry {
   accuracy?: number | null
   createdAt: string
   address?: string | null
+  photo?: string | null
+  location?: "casa" | "escritorio" | "outros"
 }
 
 function EmployeeDashboard() {
@@ -33,11 +40,19 @@ function EmployeeDashboard() {
   const [todaySummary, setTodaySummary] = useState({
     hoursWorked: "00:00",
     breakTime: "00:00",
-    status: "Em andamento"
+    status: "Em andamento",
   })
   const [showNotification, setShowNotification] = useState(false)
   const [notificationMessage, setNotificationMessage] = useState("")
   const mapRef = useRef<HTMLDivElement>(null)
+
+  // Estados para o modal de captura de foto
+  const [showPhotoModal, setShowPhotoModal] = useState(false)
+  const [capturedImage, setCapturedImage] = useState<string | null>(null)
+  const [selectedLocation, setSelectedLocation] = useState<"casa" | "escritorio" | "outros" | null>(null)
+  const [pendingEntryType, setPendingEntryType] = useState<
+    "CLOCK_IN" | "BREAK_START" | "BREAK_END" | "CLOCK_OUT" | null
+  >(null)
 
   // Obter a geolocalização
   const geolocation = useGeolocation()
@@ -76,8 +91,10 @@ function EmployeeDashboard() {
     fetchTodayEntries()
   }, [])
 
-  // Obter endereço a partir das coordenadas
+  // Obter endereço a partir das coordenadas - com timeout maior
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout | null = null
+
     const getAddressFromCoordinates = async () => {
       if (!geolocation.latitude || !geolocation.longitude || geolocation.error) {
         return
@@ -88,10 +105,10 @@ function EmployeeDashboard() {
         // Usando a API Nominatim do OpenStreetMap para geocodificação reversa
         const response = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${geolocation.latitude}&lon=${geolocation.longitude}&zoom=18&addressdetails=1`,
-          { headers: { "Accept-Language": "pt-BR" } }
+          { headers: { "Accept-Language": "pt-BR" } },
         )
         const data = await response.json()
-        
+
         if (data && data.display_name) {
           // Formatando o endereço para ser mais legível
           const addressParts = [
@@ -100,9 +117,9 @@ function EmployeeDashboard() {
             data.address.suburb,
             data.address.city_district,
             data.address.city,
-            data.address.state
+            data.address.state,
           ].filter(Boolean)
-          
+
           setAddress(addressParts.join(", "))
         }
       } catch (error) {
@@ -113,27 +130,31 @@ function EmployeeDashboard() {
       }
     }
 
-    getAddressFromCoordinates()
+    // Aumentar o timeout para 10 segundos
+    if (geolocation.latitude && geolocation.longitude && !geolocation.error) {
+      timeoutId = setTimeout(() => {
+        getAddressFromCoordinates()
+      }, 1000) // 1 segundo de delay para evitar muitas requisições
+    }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
+    }
   }, [geolocation.latitude, geolocation.longitude, geolocation.error])
 
   // Carregar mapa quando as coordenadas estiverem disponíveis
   useEffect(() => {
-    if (
-      mapRef.current && 
-      geolocation.latitude && 
-      geolocation.longitude && 
-      !geolocation.error
-    ) {
+    if (mapRef.current && geolocation.latitude && geolocation.longitude && !geolocation.error) {
       // Criando o iframe do mapa do OpenStreetMap
-      const iframe = document.createElement('iframe')
-      iframe.width = '100%'
-      iframe.height = '100%'
-      iframe.style.border = 'none'
-      iframe.style.borderRadius = 'var(--border-radius-lg)'
+      const iframe = document.createElement("iframe")
+      iframe.width = "100%"
+      iframe.height = "100%"
+      iframe.style.border = "none"
+      iframe.style.borderRadius = "var(--border-radius-lg)"
       iframe.src = `https://www.openstreetmap.org/export/embed.html?bbox=${geolocation.longitude - 0.002},${geolocation.latitude - 0.002},${geolocation.longitude + 0.002},${geolocation.latitude + 0.002}&layer=mapnik&marker=${geolocation.latitude},${geolocation.longitude}`
-      
+
       // Limpar o conteúdo anterior e adicionar o iframe
-      mapRef.current.innerHTML = ''
+      mapRef.current.innerHTML = ""
       mapRef.current.appendChild(iframe)
     }
   }, [geolocation.latitude, geolocation.longitude, geolocation.error])
@@ -144,7 +165,7 @@ function EmployeeDashboard() {
       setTodaySummary({
         hoursWorked: "00:00",
         breakTime: "00:00",
-        status: "Não iniciado"
+        status: "Não iniciado",
       })
       return
     }
@@ -152,17 +173,17 @@ function EmployeeDashboard() {
     let totalWorkMinutes = 0
     let totalBreakMinutes = 0
     let status = "Em andamento"
-    
+
     // Organizar entradas em pares
     for (let i = 0; i < entries.length; i += 2) {
       const start = entries[i]
       const end = entries[i + 1]
-      
+
       if (start && end) {
         const startTime = parseISO(start.timestamp)
         const endTime = parseISO(end.timestamp)
         const diffMinutes = differenceInMinutes(endTime, startTime)
-        
+
         if (start.type === "CLOCK_IN" && end.type === "BREAK_START") {
           totalWorkMinutes += diffMinutes
         } else if (start.type === "BREAK_START" && end.type === "BREAK_END") {
@@ -172,54 +193,65 @@ function EmployeeDashboard() {
         }
       }
     }
-    
+
     // Se a última entrada não tem par, calcular até agora
     if (entries.length % 2 !== 0) {
       const lastEntry = entries[entries.length - 1]
       const lastTime = parseISO(lastEntry.timestamp)
       const diffMinutes = differenceInMinutes(new Date(), lastTime)
-      
+
       if (lastEntry.type === "CLOCK_IN" || lastEntry.type === "BREAK_END") {
         totalWorkMinutes += diffMinutes
       } else if (lastEntry.type === "BREAK_START") {
         totalBreakMinutes += diffMinutes
       }
     }
-    
+
     // Verificar se a jornada está completa
     if (entries.length >= 4 && entries[entries.length - 1].type === "CLOCK_OUT") {
       status = "Concluído"
     }
-    
+
     // Formatar horas e minutos
     const formatMinutes = (minutes: number) => {
       const hours = Math.floor(minutes / 60)
       const mins = minutes % 60
-      return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`
+      return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`
     }
-    
+
     setTodaySummary({
       hoursWorked: formatMinutes(totalWorkMinutes),
       breakTime: formatMinutes(totalBreakMinutes),
-      status
+      status,
     })
   }
 
-  const handleTimeEntry = async (type: "CLOCK_IN" | "BREAK_START" | "BREAK_END" | "CLOCK_OUT") => {
-    try {
-      // Verificar se a geolocalização está disponível
-      if (geolocation.error) {
-        setGeoError(geolocation.error)
-        return
-      }
+  // Iniciar processo de registro de ponto com foto
+  const initiateTimeEntry = (type: "CLOCK_IN" | "BREAK_START" | "BREAK_END" | "CLOCK_OUT") => {
+    // Verificar se a geolocalização está disponível
+    if (geolocation.error) {
+      setGeoError(geolocation.error)
+      return
+    }
 
-      // Preparar dados com geolocalização
+    setPendingEntryType(type)
+    setShowPhotoModal(true)
+  }
+
+  // Finalizar o registro de ponto após capturar a foto e selecionar a localização
+  const finalizeTimeEntry = async () => {
+    if (!pendingEntryType || !selectedLocation) return
+
+    try {
+      // Preparar dados com geolocalização, foto e localização selecionada
       const entryData = {
-        type,
+        type: pendingEntryType,
         latitude: geolocation.latitude,
         longitude: geolocation.longitude,
         accuracy: geolocation.accuracy,
-        address: address
+        address: address,
+        photo: capturedImage,
+        location: selectedLocation,
       }
 
       const response = await api.post("/time-entries", entryData)
@@ -230,12 +262,18 @@ function EmployeeDashboard() {
       setTodayEntries(updatedEntries)
       setLastEntry(newEntry)
       setGeoError(null)
-      
+
       // Atualizar o resumo do dia
       calculateTodaySummary(updatedEntries)
-      
+
       // Mostrar notificação de sucesso
-      showSuccessNotification(type)
+      showSuccessNotification(pendingEntryType)
+
+      // Limpar estados do modal
+      setShowPhotoModal(false)
+      setCapturedImage(null)
+      setSelectedLocation(null)
+      setPendingEntryType(null)
     } catch (error) {
       console.error("Erro ao registrar ponto:", error)
       setNotificationMessage("Erro ao registrar ponto. Tente novamente.")
@@ -260,7 +298,7 @@ function EmployeeDashboard() {
         message = "Saída registrada com sucesso!"
         break
     }
-    
+
     setNotificationMessage(message)
     setShowNotification(true)
     setTimeout(() => setShowNotification(false), 5000)
@@ -400,22 +438,22 @@ function EmployeeDashboard() {
         {/* Notificação flutuante */}
         <AnimatePresence>
           {showNotification && (
-            <motion.div 
+            <motion.div
               className="notification"
               initial={{ opacity: 0, y: -50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -50 }}
             >
               <div className="notification-content">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="24" 
-                  height="24" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
                   strokeLinejoin="round"
                 >
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
@@ -423,10 +461,7 @@ function EmployeeDashboard() {
                 </svg>
                 <span>{notificationMessage}</span>
               </div>
-              <button 
-                className="notification-close"
-                onClick={() => setShowNotification(false)}
-              >
+              <button className="notification-close" onClick={() => setShowNotification(false)}>
                 ×
               </button>
             </motion.div>
@@ -452,12 +487,7 @@ function EmployeeDashboard() {
 
         <motion.div className="dashboard-grid" variants={container} initial="hidden" animate="show">
           {/* Card do relógio */}
-          <motion.div
-            className="card time-display-card"
-            variants={item}
-            whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
-            transition={{ duration: 0.3 }}
-          >
+          <Card title="Horário atual" className="time-display-card">
             <motion.div className="time-display">
               <motion.div
                 className="current-time"
@@ -472,18 +502,11 @@ function EmployeeDashboard() {
               >
                 {formatTime(currentTime)}
               </motion.div>
-              <div className="time-label">Horário atual</div>
             </motion.div>
-          </motion.div>
+          </Card>
 
           {/* Card de resumo do dia */}
-          <motion.div
-            className="card today-summary"
-            variants={item}
-            whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
-            transition={{ duration: 0.3 }}
-          >
-            <h2>Resumo do Dia</h2>
+          <Card title="Resumo do Dia" className="today-summary">
             <div className="summary-content">
               <div className="summary-item">
                 <div className="summary-icon hours">
@@ -555,17 +578,10 @@ function EmployeeDashboard() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </Card>
 
           {/* Card de ações de registro */}
-          <motion.div
-            className="card time-entry-actions"
-            variants={item}
-            whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
-            transition={{ duration: 0.3 }}
-          >
-            <motion.h2>Registrar Ponto</motion.h2>
-
+          <Card title="Registrar Ponto" className="time-entry-actions">
             {/* Mostrar status da geolocalização */}
             <motion.div
               className={`geolocation-status ${geolocation.loading ? "loading" : geolocation.error ? "error" : "success"}`}
@@ -654,7 +670,7 @@ function EmployeeDashboard() {
 
             {/* Exibir endereço */}
             {!geolocation.error && !geolocation.loading && (
-              <motion.div 
+              <motion.div
                 className="address-display"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
@@ -739,125 +755,117 @@ function EmployeeDashboard() {
                 transition={{ delay: 0.3 }}
               >
                 {getNextActionType() === "CLOCK_IN" && (
-                  <motion.button
-                    className="btn-entry clock-in"
-                    onClick={() => handleTimeEntry("CLOCK_IN")}
+                  <Button
+                    variant="primary"
+                    onClick={() => initiateTimeEntry("CLOCK_IN")}
                     disabled={geolocation.loading || !!geolocation.error}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    fullWidth
+                    icon={
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                        <polyline points="10 17 15 12 10 7"></polyline>
+                        <line x1="15" y1="12" x2="3" y2="12"></line>
+                      </svg>
+                    }
                   >
-                    <motion.svg
-                      initial={{ x: -20, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                      <polyline points="10 17 15 12 10 7"></polyline>
-                      <line x1="15" y1="12" x2="3" y2="12"></line>
-                    </motion.svg>
                     Registrar Entrada
-                  </motion.button>
+                  </Button>
                 )}
 
                 {getNextActionType() === "BREAK_START" && (
-                  <motion.button
-                    className="btn-entry break-start"
-                    onClick={() => handleTimeEntry("BREAK_START")}
+                  <Button
+                    variant="secondary"
+                    onClick={() => initiateTimeEntry("BREAK_START")}
                     disabled={geolocation.loading || !!geolocation.error}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    fullWidth
+                    icon={
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                        <line x1="6" y1="1" x2="6" y2="4"></line>
+                        <line x1="10" y1="1" x2="10" y2="4"></line>
+                        <line x1="14" y1="1" x2="14" y2="4"></line>
+                      </svg>
+                    }
                   >
-                    <motion.svg
-                      initial={{ y: -20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
-                      <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
-                      <line x1="6" y1="1" x2="6" y2="4"></line>
-                      <line x1="10" y1="1" x2="10" y2="4"></line>
-                      <line x1="14" y1="1" x2="14" y2="4"></line>
-                    </motion.svg>
                     Iniciar Intervalo
-                  </motion.button>
+                  </Button>
                 )}
 
                 {getNextActionType() === "BREAK_END" && (
-                  <motion.button
-                    className="btn-entry break-end"
-                    onClick={() => handleTimeEntry("BREAK_END")}
+                  <Button
+                    variant="primary"
+                    onClick={() => initiateTimeEntry("BREAK_END")}
                     disabled={geolocation.loading || !!geolocation.error}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    fullWidth
+                    icon={
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                      </svg>
+                    }
                   >
-                    <motion.svg
-                      initial={{ rotate: -180, opacity: 0 }}
-                      animate={{ rotate: 0, opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="23 4 23 10 17 10"></polyline>
-                      <polyline points="1 20 1 14 7 14"></polyline>
-                      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                    </motion.svg>
                     Retornar do Intervalo
-                  </motion.button>
+                  </Button>
                 )}
 
                 {getNextActionType() === "CLOCK_OUT" && (
-                  <motion.button
-                    className="btn-entry clock-out"
-                    onClick={() => handleTimeEntry("CLOCK_OUT")}
+                  <Button
+                    variant="danger"
+                    onClick={() => initiateTimeEntry("CLOCK_OUT")}
                     disabled={geolocation.loading || !!geolocation.error}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    fullWidth
+                    icon={
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                      </svg>
+                    }
                   >
-                    <motion.svg
-                      initial={{ x: 20, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                      <polyline points="16 17 21 12 16 7"></polyline>
-                      <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </motion.svg>
                     Registrar Saída
-                  </motion.button>
+                  </Button>
                 )}
 
                 {getNextActionType() === null && (
@@ -895,16 +903,10 @@ function EmployeeDashboard() {
                 )}
               </motion.div>
             )}
-          </motion.div>
+          </Card>
 
           {/* Card do mapa de localização */}
-          <motion.div
-            className="card location-map"
-            variants={item}
-            whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
-            transition={{ duration: 0.3 }}
-          >
-            <h2>Sua Localização</h2>
+          <Card title="Sua Localização" className="location-map">
             <div className="map-container" ref={mapRef}>
               {(geolocation.loading || geolocation.error) && (
                 <div className="map-placeholder">
@@ -957,17 +959,10 @@ function EmployeeDashboard() {
                 </div>
               )}
             </div>
-          </motion.div>
+          </Card>
 
           {/* Card de registros de hoje */}
-          <motion.div
-            className="card today-entries"
-            variants={item}
-            whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
-            transition={{ duration: 0.3 }}
-          >
-            <h2>Registros de Hoje</h2>
-
+          <Card title="Registros de Hoje" className="today-entries">
             {todayEntries.length === 0 ? (
               <motion.div
                 className="no-entries"
@@ -1014,9 +1009,7 @@ function EmployeeDashboard() {
                         {entry.type === "CLOCK_OUT" && "Saída"}
                       </span>
                       <span className="entry-time">{format(new Date(entry.timestamp), "HH:mm:ss")}</span>
-                      {entry.address && (
-                        <span className="entry-address">{entry.address}</span>
-                      )}
+                      {entry.address && <span className="entry-address">{entry.address}</span>}
                     </div>
                     {entry.latitude && entry.longitude && (
                       <motion.div
@@ -1044,36 +1037,96 @@ function EmployeeDashboard() {
                 ))}
               </motion.ul>
             )}
-          </motion.div>
+          </Card>
 
           {/* Card de solicitação de ajuste */}
-          <motion.div
-            className="card adjustment-request"
-            variants={item}
-            whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
-            transition={{ duration: 0.3 }}
-          >
-            <h2>Solicitar Ajuste</h2>
+          <Card title="Solicitar Ajuste" className="adjustment-request">
             <p>Precisa corrigir algum registro de ponto? Faça uma solicitação de ajuste.</p>
-            <motion.button className="btn btn-primary" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-              </svg>
+            <Button
+              variant="primary"
+              icon={
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              }
+            >
               Nova Solicitação
-            </motion.button>
-          </motion.div>
+            </Button>
+          </Card>
         </motion.div>
+
+        {/* Modal de captura de foto */}
+        <Modal
+          isOpen={showPhotoModal}
+          onClose={() => {
+            setShowPhotoModal(false)
+            setCapturedImage(null)
+            setSelectedLocation(null)
+            setPendingEntryType(null)
+          }}
+          title="Registrar Ponto"
+          size="md"
+        >
+          {!capturedImage ? (
+            <Camera
+              onCapture={(imageSrc) => setCapturedImage(imageSrc)}
+              onCancel={() => {
+                setShowPhotoModal(false)
+                setPendingEntryType(null)
+              }}
+            />
+          ) : (
+            <div className="photo-confirmation">
+              <img src={capturedImage || "/placeholder.svg"} alt="Foto capturada" className="captured-image" />
+
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Selecione sua localização:</h3>
+
+              <div className="location-options">
+                <LocationOption
+                  icon={<Home size={24} />}
+                  label="Casa"
+                  isSelected={selectedLocation === "casa"}
+                  onClick={() => setSelectedLocation("casa")}
+                />
+
+                <LocationOption
+                  icon={<Building2 size={24} />}
+                  label="Escritório"
+                  isSelected={selectedLocation === "escritorio"}
+                  onClick={() => setSelectedLocation("escritorio")}
+                />
+
+                <LocationOption
+                  icon={<MapPin size={24} />}
+                  label="Outros"
+                  isSelected={selectedLocation === "outros"}
+                  onClick={() => setSelectedLocation("outros")}
+                />
+              </div>
+
+              <div className="flex gap-3 mt-4">
+                <Button variant="outline" onClick={() => setCapturedImage(null)} icon={<CameraIcon size={18} />}>
+                  Nova Foto
+                </Button>
+
+                <Button variant="primary" onClick={finalizeTimeEntry} disabled={!selectedLocation} fullWidth>
+                  Confirmar Registro
+                </Button>
+              </div>
+            </div>
+          )}
+        </Modal>
       </motion.div>
     </Layout>
   )
