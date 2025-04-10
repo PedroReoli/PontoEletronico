@@ -7414,3 +7414,334 @@ a:hover {
     display: none;
   }
 }
+/* Dashboard.tsx --- Dashboard Principal */
+/* Dashboard Styles */
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Dashboard Header */
+.dashboard-header {
+  background-color: white;
+  border-radius: var(--border-radius-md);
+  padding: var(--space-3);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-3);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.welcome-section h1 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--gray-900);
+  margin: 0;
+}
+
+.date-display {
+  font-size: var(--font-size-sm);
+  color: var(--gray-600);
+  margin: 0;
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--space-3);
+}
+
+/* Section Styles */
+.message-section,
+.ranking-section,
+.birthday-section {
+  background-color: white;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-3);
+  transition: transform var(--transition-fast) var(--transition-ease);
+}
+
+.message-section:hover,
+.ranking-section:hover,
+.birthday-section:hover {
+  transform: translateY(-2px);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--gray-200);
+  padding-bottom: var(--space-2);
+}
+
+.section-header h2 {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--gray-900);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+/* Message Section */
+.message-section {
+  grid-column: span 12;
+}
+
+.message-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3);
+  background-color: var(--gray-50);
+  border-radius: var(--border-radius-md);
+  border-left: 4px solid var(--blue-500);
+}
+
+.message-content {
+  text-align: center;
+  font-size: var(--font-size-md);
+  color: var(--gray-800);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.message-content p {
+  margin: 0;
+}
+
+/* Ranking Section */
+.ranking-section {
+  grid-column: span 6;
+}
+
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  padding: var(--space-2);
+  border-radius: var(--border-radius-md);
+  background-color: var(--gray-50);
+  transition: transform var(--transition-fast) var(--transition-ease);
+}
+
+.ranking-item:hover {
+  transform: translateX(3px);
+}
+
+.ranking-item.position-1 {
+  background-color: rgba(255, 215, 0, 0.1);
+  border-left: 3px solid gold;
+}
+
+.ranking-item.position-2 {
+  background-color: rgba(192, 192, 192, 0.1);
+  border-left: 3px solid silver;
+}
+
+.ranking-item.position-3 {
+  background-color: rgba(205, 127, 50, 0.1);
+  border-left: 3px solid #cd7f32;
+}
+
+.ranking-position {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  width: var(--space-6);
+  text-align: center;
+}
+
+.ranking-user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+.ranking-avatar,
+.ranking-avatar-placeholder {
+  width: var(--space-6);
+  height: var(--space-6);
+  border-radius: var(--border-radius-full);
+  object-fit: cover;
+}
+
+.ranking-avatar-placeholder {
+  background-color: var(--gray-300);
+  color: var(--gray-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xs);
+}
+
+.ranking-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--gray-900);
+}
+
+.ranking-score {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--blue-600);
+}
+
+/* Birthday Section */
+.birthday-section {
+  grid-column: span 6;
+}
+
+.birthday-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.birthday-item {
+  display: flex;
+  align-items: center;
+  padding: var(--space-2);
+  border-radius: var(--border-radius-md);
+  background-color: var(--gray-50);
+  transition: transform var(--transition-fast) var(--transition-ease);
+  position: relative;
+}
+
+.birthday-item:hover {
+  transform: translateY(-2px);
+}
+
+.birthday-item.today {
+  background-color: rgba(255, 182, 193, 0.1);
+  border-left: 3px solid var(--error);
+}
+
+.birthday-date-badge {
+  background-color: var(--gray-200);
+  color: var(--gray-700);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--border-radius-md);
+  margin-right: var(--space-2);
+  min-width: 50px;
+  text-align: center;
+}
+
+.birthday-item.today .birthday-date-badge {
+  background-color: var(--error-light);
+  color: var(--error-dark);
+}
+
+.birthday-user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+.birthday-avatar,
+.birthday-avatar-placeholder {
+  width: var(--space-6);
+  height: var(--space-6);
+  border-radius: var(--border-radius-full);
+  object-fit: cover;
+}
+
+.birthday-avatar-placeholder {
+  background-color: var(--gray-300);
+  color: var(--gray-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xs);
+}
+
+.birthday-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--gray-900);
+}
+
+.birthday-today {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  background-color: var(--error);
+  color: white;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.no-birthdays {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  color: var(--gray-500);
+  font-style: italic;
+  font-size: var(--font-size-sm);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .ranking-section,
+  .birthday-section {
+    grid-column: span 12;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard {
+    padding: var(--space-2);
+  }
+
+  .dashboard-grid {
+    gap: var(--space-2);
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+  
+  .birthday-item {
+    flex-wrap: wrap;
+  }
+  
+  .birthday-date-badge {
+    margin-bottom: var(--space-1);
+  }
+  
+  .birthday-today {
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+  }
+}
