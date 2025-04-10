@@ -1,13 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { format } from "date-fns"
+import { useState, useEffect, useRef } from "react"
+import { format, differenceInMinutes, parseISO } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import api from "../services/api"
 import { useAuth } from "../hooks/useAuth"
 import { useGeolocation } from "../hooks/useGeolocation"
 import Layout from "../components/Layout"
 import { motion, AnimatePresence } from "framer-motion"
+// import "./employee-dashboard.css"
 
 interface TimeEntry {
   id: string
@@ -17,6 +18,7 @@ interface TimeEntry {
   longitude?: number | null
   accuracy?: number | null
   createdAt: string
+  address?: string | null
 }
 
 function EmployeeDashboard() {
@@ -26,10 +28,21 @@ function EmployeeDashboard() {
   const [lastEntry, setLastEntry] = useState<TimeEntry | null>(null)
   const [currentTime, setCurrentTime] = useState(new Date())
   const [geoError, setGeoError] = useState<string | null>(null)
+  const [address, setAddress] = useState<string | null>(null)
+  const [addressLoading, setAddressLoading] = useState(false)
+  const [todaySummary, setTodaySummary] = useState({
+    hoursWorked: "00:00",
+    breakTime: "00:00",
+    status: "Em andamento"
+  })
+  const [showNotification, setShowNotification] = useState(false)
+  const [notificationMessage, setNotificationMessage] = useState("")
+  const mapRef = useRef<HTMLDivElement>(null)
 
   // Obter a geolocalização
   const geolocation = useGeolocation()
 
+  // Atualizar o relógio a cada segundo
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date())
@@ -38,6 +51,7 @@ function EmployeeDashboard() {
     return () => clearInterval(timer)
   }, [])
 
+  // Buscar registros de hoje
   useEffect(() => {
     const fetchTodayEntries = async () => {
       try {
@@ -49,6 +63,9 @@ function EmployeeDashboard() {
         if (response.data.length > 0) {
           setLastEntry(response.data[response.data.length - 1])
         }
+
+        // Calcular resumo do dia
+        calculateTodaySummary(response.data)
       } catch (error) {
         console.error("Erro ao buscar registros de hoje:", error)
       } finally {
@@ -58,6 +75,135 @@ function EmployeeDashboard() {
 
     fetchTodayEntries()
   }, [])
+
+  // Obter endereço a partir das coordenadas
+  useEffect(() => {
+    const getAddressFromCoordinates = async () => {
+      if (!geolocation.latitude || !geolocation.longitude || geolocation.error) {
+        return
+      }
+
+      try {
+        setAddressLoading(true)
+        // Usando a API Nominatim do OpenStreetMap para geocodificação reversa
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${geolocation.latitude}&lon=${geolocation.longitude}&zoom=18&addressdetails=1`,
+          { headers: { "Accept-Language": "pt-BR" } }
+        )
+        const data = await response.json()
+        
+        if (data && data.display_name) {
+          // Formatando o endereço para ser mais legível
+          const addressParts = [
+            data.address.road,
+            data.address.house_number,
+            data.address.suburb,
+            data.address.city_district,
+            data.address.city,
+            data.address.state
+          ].filter(Boolean)
+          
+          setAddress(addressParts.join(", "))
+        }
+      } catch (error) {
+        console.error("Erro ao obter endereço:", error)
+        setAddress("Não foi possível determinar o endereço")
+      } finally {
+        setAddressLoading(false)
+      }
+    }
+
+    getAddressFromCoordinates()
+  }, [geolocation.latitude, geolocation.longitude, geolocation.error])
+
+  // Carregar mapa quando as coordenadas estiverem disponíveis
+  useEffect(() => {
+    if (
+      mapRef.current && 
+      geolocation.latitude && 
+      geolocation.longitude && 
+      !geolocation.error
+    ) {
+      // Criando o iframe do mapa do OpenStreetMap
+      const iframe = document.createElement('iframe')
+      iframe.width = '100%'
+      iframe.height = '100%'
+      iframe.style.border = 'none'
+      iframe.style.borderRadius = 'var(--border-radius-lg)'
+      iframe.src = `https://www.openstreetmap.org/export/embed.html?bbox=${geolocation.longitude - 0.002},${geolocation.latitude - 0.002},${geolocation.longitude + 0.002},${geolocation.latitude + 0.002}&layer=mapnik&marker=${geolocation.latitude},${geolocation.longitude}`
+      
+      // Limpar o conteúdo anterior e adicionar o iframe
+      mapRef.current.innerHTML = ''
+      mapRef.current.appendChild(iframe)
+    }
+  }, [geolocation.latitude, geolocation.longitude, geolocation.error])
+
+  // Calcular resumo do dia com base nos registros
+  const calculateTodaySummary = (entries: TimeEntry[]) => {
+    if (entries.length === 0) {
+      setTodaySummary({
+        hoursWorked: "00:00",
+        breakTime: "00:00",
+        status: "Não iniciado"
+      })
+      return
+    }
+
+    let totalWorkMinutes = 0
+    let totalBreakMinutes = 0
+    let status = "Em andamento"
+    
+    // Organizar entradas em pares
+    for (let i = 0; i < entries.length; i += 2) {
+      const start = entries[i]
+      const end = entries[i + 1]
+      
+      if (start && end) {
+        const startTime = parseISO(start.timestamp)
+        const endTime = parseISO(end.timestamp)
+        const diffMinutes = differenceInMinutes(endTime, startTime)
+        
+        if (start.type === "CLOCK_IN" && end.type === "BREAK_START") {
+          totalWorkMinutes += diffMinutes
+        } else if (start.type === "BREAK_START" && end.type === "BREAK_END") {
+          totalBreakMinutes += diffMinutes
+        } else if (start.type === "BREAK_END" && end.type === "CLOCK_OUT") {
+          totalWorkMinutes += diffMinutes
+        }
+      }
+    }
+    
+    // Se a última entrada não tem par, calcular até agora
+    if (entries.length % 2 !== 0) {
+      const lastEntry = entries[entries.length - 1]
+      const lastTime = parseISO(lastEntry.timestamp)
+      const diffMinutes = differenceInMinutes(new Date(), lastTime)
+      
+      if (lastEntry.type === "CLOCK_IN" || lastEntry.type === "BREAK_END") {
+        totalWorkMinutes += diffMinutes
+      } else if (lastEntry.type === "BREAK_START") {
+        totalBreakMinutes += diffMinutes
+      }
+    }
+    
+    // Verificar se a jornada está completa
+    if (entries.length >= 4 && entries[entries.length - 1].type === "CLOCK_OUT") {
+      status = "Concluído"
+    }
+    
+    // Formatar horas e minutos
+    const formatMinutes = (minutes: number) => {
+      const hours = Math.floor(minutes / 60)
+      const mins = minutes % 60
+      return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`
+    }
+    
+    setTodaySummary({
+      hoursWorked: formatMinutes(totalWorkMinutes),
+      breakTime: formatMinutes(totalBreakMinutes),
+      status
+    })
+  }
 
   const handleTimeEntry = async (type: "CLOCK_IN" | "BREAK_START" | "BREAK_END" | "CLOCK_OUT") => {
     try {
@@ -73,17 +219,51 @@ function EmployeeDashboard() {
         latitude: geolocation.latitude,
         longitude: geolocation.longitude,
         accuracy: geolocation.accuracy,
+        address: address
       }
 
       const response = await api.post("/time-entries", entryData)
 
       // Atualizar a lista de entradas
-      setTodayEntries([...todayEntries, response.data])
-      setLastEntry(response.data)
+      const newEntry = response.data
+      const updatedEntries = [...todayEntries, newEntry]
+      setTodayEntries(updatedEntries)
+      setLastEntry(newEntry)
       setGeoError(null)
+      
+      // Atualizar o resumo do dia
+      calculateTodaySummary(updatedEntries)
+      
+      // Mostrar notificação de sucesso
+      showSuccessNotification(type)
     } catch (error) {
       console.error("Erro ao registrar ponto:", error)
+      setNotificationMessage("Erro ao registrar ponto. Tente novamente.")
+      setShowNotification(true)
+      setTimeout(() => setShowNotification(false), 5000)
     }
+  }
+
+  const showSuccessNotification = (type: string) => {
+    let message = ""
+    switch (type) {
+      case "CLOCK_IN":
+        message = "Entrada registrada com sucesso!"
+        break
+      case "BREAK_START":
+        message = "Intervalo iniciado com sucesso!"
+        break
+      case "BREAK_END":
+        message = "Retorno do intervalo registrado!"
+        break
+      case "CLOCK_OUT":
+        message = "Saída registrada com sucesso!"
+        break
+    }
+    
+    setNotificationMessage(message)
+    setShowNotification(true)
+    setTimeout(() => setShowNotification(false), 5000)
   }
 
   const getNextActionType = (): "CLOCK_IN" | "BREAK_START" | "BREAK_END" | "CLOCK_OUT" | null => {
@@ -217,6 +397,42 @@ function EmployeeDashboard() {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
+        {/* Notificação flutuante */}
+        <AnimatePresence>
+          {showNotification && (
+            <motion.div 
+              className="notification"
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -50 }}
+            >
+              <div className="notification-content">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="24" 
+                  height="24" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                >
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <span>{notificationMessage}</span>
+              </div>
+              <button 
+                className="notification-close"
+                onClick={() => setShowNotification(false)}
+              >
+                ×
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <motion.div
           className="dashboard-header"
           initial={{ opacity: 0, y: -20 }}
@@ -235,6 +451,7 @@ function EmployeeDashboard() {
         </motion.div>
 
         <motion.div className="dashboard-grid" variants={container} initial="hidden" animate="show">
+          {/* Card do relógio */}
           <motion.div
             className="card time-display-card"
             variants={item}
@@ -259,6 +476,88 @@ function EmployeeDashboard() {
             </motion.div>
           </motion.div>
 
+          {/* Card de resumo do dia */}
+          <motion.div
+            className="card today-summary"
+            variants={item}
+            whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+            transition={{ duration: 0.3 }}
+          >
+            <h2>Resumo do Dia</h2>
+            <div className="summary-content">
+              <div className="summary-item">
+                <div className="summary-icon hours">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                </div>
+                <div className="summary-details">
+                  <span className="summary-label">Horas Trabalhadas</span>
+                  <span className="summary-value">{todaySummary.hoursWorked}</span>
+                </div>
+              </div>
+              <div className="summary-item">
+                <div className="summary-icon break">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                    <line x1="6" y1="1" x2="6" y2="4"></line>
+                    <line x1="10" y1="1" x2="10" y2="4"></line>
+                    <line x1="14" y1="1" x2="14" y2="4"></line>
+                  </svg>
+                </div>
+                <div className="summary-details">
+                  <span className="summary-label">Tempo de Intervalo</span>
+                  <span className="summary-value">{todaySummary.breakTime}</span>
+                </div>
+              </div>
+              <div className="summary-item">
+                <div className="summary-icon status">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                </div>
+                <div className="summary-details">
+                  <span className="summary-label">Status</span>
+                  <span className="summary-value">{todaySummary.status}</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Card de ações de registro */}
           <motion.div
             className="card time-entry-actions"
             variants={item}
@@ -352,6 +651,38 @@ function EmployeeDashboard() {
                 </>
               )}
             </motion.div>
+
+            {/* Exibir endereço */}
+            {!geolocation.error && !geolocation.loading && (
+              <motion.div 
+                className="address-display"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                transition={{ delay: 0.3 }}
+              >
+                <div className="address-icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                  </svg>
+                </div>
+                {addressLoading ? (
+                  <p>Obtendo endereço...</p>
+                ) : (
+                  <p className="address-text">{address || "Endereço não disponível"}</p>
+                )}
+              </motion.div>
+            )}
 
             <AnimatePresence>
               {geoError && (
@@ -566,6 +897,69 @@ function EmployeeDashboard() {
             )}
           </motion.div>
 
+          {/* Card do mapa de localização */}
+          <motion.div
+            className="card location-map"
+            variants={item}
+            whileHover={{ y: -5, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+            transition={{ duration: 0.3 }}
+          >
+            <h2>Sua Localização</h2>
+            <div className="map-container" ref={mapRef}>
+              {(geolocation.loading || geolocation.error) && (
+                <div className="map-placeholder">
+                  {geolocation.loading ? (
+                    <div className="map-loading">
+                      <motion.svg
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="40"
+                        height="40"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <line x1="12" y1="2" x2="12" y2="6"></line>
+                        <line x1="12" y1="18" x2="12" y2="22"></line>
+                        <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                        <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                        <line x1="2" y1="12" x2="6" y2="12"></line>
+                        <line x1="18" y1="12" x2="22" y2="12"></line>
+                        <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                        <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                      </motion.svg>
+                      <p>Carregando mapa...</p>
+                    </div>
+                  ) : (
+                    <div className="map-error">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="40"
+                        height="40"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                      </svg>
+                      <p>Não foi possível carregar o mapa</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Card de registros de hoje */}
           <motion.div
             className="card today-entries"
             variants={item}
@@ -620,6 +1014,9 @@ function EmployeeDashboard() {
                         {entry.type === "CLOCK_OUT" && "Saída"}
                       </span>
                       <span className="entry-time">{format(new Date(entry.timestamp), "HH:mm:ss")}</span>
+                      {entry.address && (
+                        <span className="entry-address">{entry.address}</span>
+                      )}
                     </div>
                     {entry.latitude && entry.longitude && (
                       <motion.div
@@ -649,6 +1046,7 @@ function EmployeeDashboard() {
             )}
           </motion.div>
 
+          {/* Card de solicitação de ajuste */}
           <motion.div
             className="card adjustment-request"
             variants={item}
@@ -682,4 +1080,3 @@ function EmployeeDashboard() {
 }
 
 export default EmployeeDashboard
-
