@@ -37,7 +37,7 @@ function Dashboard() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [rankingUsers, setRankingUsers] = useState<RankingUser[]>([])
   const [birthdays, setBirthdays] = useState<Birthday[]>([])
-  const [loading, setLoading] = useState(true)
+  const [, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [dayMessage, setDayMessage] = useState("")
 

@@ -31,6 +31,7 @@ body {
                                       |___/           
 
 */
+/* COMPONENTE.CSS */
 /* ===== AUTHENTICATION PAGES ===== */
 .auth-container {
   display: flex;
@@ -845,8 +846,7 @@ a:hover {
 */
 /* ############################################### */
 /* ####################################Layout.tsx */
-/* Layout Styles */
-/* Layout.css - Estilos para o componente Layout */
+/* COMPONENTE.CSS */
 
 /* Layout principal */
 .layout {
@@ -1066,7 +1066,7 @@ a:hover {
     margin-left: 0 !important;
   }
 }
-/*  Topbar Styles */
+/* COMPONENTE.CSS */
 /* Topbar.css - Estilos para o componente Topbar */
 
 /* Topbar principal */
@@ -1578,9 +1578,9 @@ a:hover {
     display: none;
   }
 }
+/* COMPONENTE.CSS */
 /* EmployeeDashboard.tsx ---- Registro de Ponto */
-/* Importar variáveis CSS */
-@import '../styles/variables.css';
+
 
 /* Estilos para o Dashboard do Funcionário */
 .employee-dashboard {
@@ -2106,7 +2106,6 @@ a:hover {
   gap: var(--space-4);
 }
 
-/* Card de registros de hoje */
 .today-entries {
   grid-column: span 6;
   max-height: 400px;
@@ -2409,9 +2408,10 @@ a:hover {
   white-space: nowrap;
   border-width: 0;
 }
+
+/* COMPONENTE.CSS */
 /* Reports.tsx - Relatórios de Ponto */ 
-/* Importar variáveis CSS */
-@import '../styles/variables.css';
+
 
 /* Estilos para a página de Relatórios */
 .reports-container {
@@ -2725,7 +2725,7 @@ a:hover {
   color: var(--success);
 }
 
-/* Indicador de carregamento */
+
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -2750,7 +2750,6 @@ a:hover {
   }
 }
 
-/* Mensagem de sem dados */
 .no-data {
   display: flex;
   flex-direction: column;
@@ -2766,7 +2765,6 @@ a:hover {
   color: var(--gray-400);
 }
 
-/* Tabela de relatórios */
 .reports-table-container {
   overflow-x: auto;
   border-radius: var(--border-radius-lg);
@@ -2893,7 +2891,6 @@ a:hover {
   color: var(--gray-900);
 }
 
-/* Linha de detalhes */
 .details-row td {
   padding: 0;
   background-color: var(--blue-50);
@@ -2985,7 +2982,6 @@ a:hover {
   border-color: var(--gray-300);
 }
 
-/* Visualização em calendário */
 .calendar-view {
   background-color: white;
   border-radius: var(--border-radius-lg);
@@ -3150,7 +3146,6 @@ a:hover {
   border-bottom: 1px solid var(--gray-100);
 }
 
-/* Visualização em gráfico */
 .chart-view {
   background-color: white;
   border-radius: var(--border-radius-lg);
@@ -3303,6 +3298,8 @@ a:hover {
   white-space: nowrap;
   border-width: 0;
 }
+
+/* COMPONENTE.CSS */
 /* ManagerDashboard.tsx --- Dashboard de Gestão de Funcionarios  */
 /* Variables */
 :root {
@@ -4739,6 +4736,7 @@ a:hover {
     max-width: 100%;
   }
 }
+/* COMPONENTE.CSS */
 /* AdjustmentRequests.tsx --- Solicitacoes de Ajustes */
 /* Seção principal */
 .adjustment-section {
@@ -5342,6 +5340,8 @@ a:hover {
     margin-bottom: 0.25rem;
   }
 }
+
+/* COMPONENTE.CSS */
 /* ManagerDashboard.tsx */
 /* Variáveis de cores e estilos são definidas no arquivo variables.css */
 /* Admin Dashboard Styles */
@@ -5824,6 +5824,8 @@ a:hover {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   }
 }
+
+/* COMPONENTE.CSS */
 /* $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$- */
 /* User Management - pagina de gestao de usuartios no portal admin */
 
@@ -6277,6 +6279,8 @@ a:hover {
     display: none;
   }
 }
+
+/* COMPONENTE.CSS */
 /* CompanyManagment.tsx ---    */
 /* Company Management Styles */
 
@@ -6764,6 +6768,8 @@ a:hover {
     display: none;
   }
 }
+
+/* COMPONENTE.CSS */
 /* ShiftGroups.tsx --- Paginas de Grupos de Jornadas de Funcionarios */
 /* Shift Groups Styles */
 
@@ -7414,6 +7420,8 @@ a:hover {
     display: none;
   }
 }
+
+/* COMPONENTE.CSS */
 /* Dashboard.tsx --- Dashboard Principal */
 /* Dashboard Styles */
 
