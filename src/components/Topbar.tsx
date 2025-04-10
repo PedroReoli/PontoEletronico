@@ -5,6 +5,7 @@ import { Link } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { useAuth } from "../hooks/useAuth"
 import api from "../services/api"
+// import "./Topbar.css"
 
 interface TopbarProps {
   toggleSidebar: () => void
