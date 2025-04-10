@@ -18,7 +18,6 @@ import {
   Tooltip, 
   Legend 
 } from 'chart.js'
-// import "./reports.css"
 
 // Registrar componentes do Chart.js
 ChartJS.register(
