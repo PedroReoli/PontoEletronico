@@ -254,3 +254,59 @@
 .notification-badge {
   @apply absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full;
 }
+
+/* Relatórios - Estilos específicos */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background-color: white;
+  }
+
+  .print-container {
+    padding: 20px;
+    max-width: 100%;
+  }
+}
+
+/* Tabela de relatórios mais compacta */
+.compact-table th,
+.compact-table td {
+  @apply px-2 py-1.5 text-sm;
+}
+
+/* Status colors para relatórios */
+.status-complete {
+  @apply text-green-600;
+}
+
+.status-incomplete {
+  @apply text-amber-600;
+}
+
+.status-absent {
+  @apply text-red-600;
+}
+
+.status-weekend {
+  @apply text-gray-500;
+}
+
+.status-holiday {
+  @apply text-blue-600;
+}
+
+/* Calendário de relatórios */
+.calendar-day {
+  @apply aspect-square p-2 text-sm;
+}
+
+.calendar-day-header {
+  @apply flex justify-between items-center mb-1;
+}
+
+.calendar-day-content {
+  @apply flex flex-col gap-0.5;
+}
