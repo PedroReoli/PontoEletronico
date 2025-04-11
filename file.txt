@@ -14,3 +14,4 @@ As principais melhorias incluem:
 
 
 recrie esse componente utilizando tailwindcss e caso necessario utilize ou crie componentes ui reutilizaveis , coloque no globalscss o que for necessario
+quero ele mais compacto 
