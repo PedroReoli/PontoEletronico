@@ -232,7 +232,7 @@ function TeamReports() {
           transition={{ duration: 0.3 }}
         >
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" as={Link} to="/manager-dashboard" leftIcon={<ArrowLeft size={16} />}>
+            <Button variant="outline" size="sm" as={Link} to="/manager" leftIcon={<ArrowLeft size={16} />}>
               Voltar
             </Button>
             <h1 className="text-2xl font-bold text-gray-800">Relatórios da Equipe</h1>
