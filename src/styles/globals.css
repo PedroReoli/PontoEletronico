@@ -125,3 +125,96 @@
 .btn-secondary {
   @apply bg-gray-200 hover:bg-gray-300 text-gray-800 focus:ring-gray-500;
 }
+
+/* Progress steps */
+.progress-steps {
+  @apply flex items-center justify-between w-full my-6;
+}
+
+.progress-step {
+  @apply flex flex-col items-center;
+}
+
+.step-number {
+  @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border-2 transition-colors duration-300;
+}
+
+.step-label {
+  @apply text-xs mt-1 font-medium;
+}
+
+.progress-step.active .step-number {
+  @apply bg-blue-600 border-blue-600 text-white;
+}
+
+.progress-step.active .step-label {
+  @apply text-blue-600;
+}
+
+.progress-step.completed .step-number {
+  @apply bg-green-600 border-green-600 text-white;
+}
+
+.progress-line {
+  @apply flex-1 h-0.5 bg-gray-200 mx-2 relative;
+}
+
+.progress-line-fill {
+  @apply absolute top-0 left-0 h-full bg-blue-600 transition-all duration-300;
+}
+
+/* Password strength */
+.password-strength {
+  @apply flex items-center mt-2;
+}
+
+.strength-bar {
+  @apply h-1 w-8 rounded-full bg-gray-200 mr-1 transition-colors duration-300;
+}
+
+.strength-bar.weak {
+  @apply bg-red-500;
+}
+
+.strength-bar.medium {
+  @apply bg-yellow-500;
+}
+
+.strength-bar.strong {
+  @apply bg-green-500;
+}
+
+.strength-text {
+  @apply text-xs ml-1 text-gray-500;
+}
+
+/* Password match */
+.password-match {
+  @apply flex items-center mt-1;
+}
+
+.match-success {
+  @apply text-xs text-green-600 flex items-center;
+}
+
+.match-error {
+  @apply text-xs text-red-600 flex items-center;
+}
+
+.match-success svg,
+.match-error svg {
+  @apply mr-1;
+}
+
+/* Success animation */
+.success-icon {
+  @apply text-green-500 mx-auto mb-4;
+}
+
+.progress-bar-container {
+  @apply w-full h-1 bg-gray-200 rounded-full mt-6 overflow-hidden;
+}
+
+.progress-bar {
+  @apply h-full bg-green-500;
+}
