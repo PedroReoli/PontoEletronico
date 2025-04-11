@@ -14,12 +14,32 @@
 
 /* Animações personalizadas */
 @keyframes pulse-subtle {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.8; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
 }
 
 .animate-pulse-subtle {
   animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Floating animation */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(15px) translateX(10px);
+  }
+}
+
+.animate-float {
+  animation: float 8s ease-in-out infinite;
 }
 
 /* Acessibilidade */
@@ -29,7 +49,9 @@
 
 /* Animação de spinner */
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .animate-spin {
@@ -54,84 +76,52 @@
   background-color: rgba(156, 163, 175, 0.5);
 }
 
-/* Notificação badge */
-.notification-badge {
-  @apply absolute -top-1 -right-1 flex items-center justify-center min-w-4 h-4 text-xs font-bold text-white bg-red-500 rounded-full px-1;
+/* Auth pages */
+.auth-page {
+  @apply min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 p-4 relative overflow-hidden;
 }
 
-/* Avatar de usuário */
-.user-avatar {
-  @apply flex items-center justify-center rounded-full bg-blue-600 text-white font-medium text-sm shadow-sm;
+.auth-card {
+  @apply w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden z-10;
 }
 
-/* Notificação flutuante */
-.notification-toast {
-  @apply fixed top-2 right-2 z-50 max-w-xs bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden;
-  animation: slide-in 0.2s ease-out forwards;
+.floating-element {
+  @apply absolute rounded-full bg-blue-500/10 z-0 animate-float;
 }
 
-@keyframes slide-in {
-  from { transform: translateY(-100%); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+/* Form elements */
+.form-input-wrapper {
+  @apply relative;
 }
 
-@keyframes slide-out {
-  from { transform: translateY(0); opacity: 1; }
-  to { transform: translateY(-100%); opacity: 0; }
+.form-input {
+  @apply w-full px-4 py-2.5 pl-10 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-500/20 focus:outline-none transition-all duration-200;
 }
 
-.notification-toast.hide {
-  animation: slide-out 0.2s ease-in forwards;
+.form-input-icon {
+  @apply absolute left-3 top-1/2 -translate-y-1/2 text-gray-400;
 }
 
-/* Relógio pulsante */
-@keyframes clock-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
+.form-input-action {
+  @apply absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer;
 }
 
-.clock-pulse {
-  animation: clock-pulse 2s ease-in-out infinite;
+.form-label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
 }
 
-/* Mapa responsivo */
-.map-container iframe {
-  @apply w-full h-full rounded-md border-0;
+.form-error {
+  @apply bg-red-50 text-red-700 p-3 rounded-lg flex items-start gap-2 text-sm mb-4;
 }
 
-/* Layout compacto */
-.compact-card {
-  @apply rounded-md shadow-sm border border-gray-200;
+.btn {
+  @apply flex items-center justify-center px-4 py-2.5 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed;
 }
 
-.compact-card-header {
-  @apply px-3 py-2 border-b border-gray-200 flex items-center justify-between;
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500;
 }
 
-.compact-card-body {
-  @apply p-3;
-}
-
-.compact-list {
-  @apply divide-y divide-gray-100;
-}
-
-.compact-list-item {
-  @apply py-2 flex items-center gap-2;
-}
-
-.compact-btn {
-  @apply py-1.5 px-3 rounded-md font-medium text-sm transition-colors;
-}
-
-.compact-input {
-  @apply py-1.5 px-3 rounded-md border border-gray-300 text-sm;
-}
-
-.compact-badge {
-  @apply inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium;
-}
-
-.compact-icon {
-  @apply flex-shrink-0;
+.btn-secondary {
+  @apply bg-gray-200 hover:bg-gray-300 text-gray-800 focus:ring-gray-500;
 }
