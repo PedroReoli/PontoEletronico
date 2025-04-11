@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import api from "@/services/api"
 import Layout from "@/components/Layout"
-import { Award, Calendar, Gift, MessageSquare } from "lucide-react"
+import { Calendar, Gift, MessageSquare, Coffee } from "lucide-react"
 import { getRandomDayMessage } from "@/utils/dailyMessages"
 import { Avatar } from "@/components/ui/Avatar"
 import { Card, CardHeader, CardContent } from "@/components/ui/Card"
@@ -18,14 +18,6 @@ interface User {
   department: string
 }
 
-interface RankingUser {
-  id: string
-  name: string
-  avatar?: string
-  score: number
-  position: number
-}
-
 interface Birthday {
   id: string
   name: string
@@ -35,14 +27,33 @@ interface Birthday {
   isToday: boolean
 }
 
+// Dicas rápidas para o card de recursos
+const quickTips = [
+  {
+    title: "Dica de produtividade",
+    content: "Método Pomodoro: foco total por 25 minutos e pausa de 5.",
+    icon: <Coffee size={18} className="text-blue-500" />,
+  },
+  {
+    title: "Dica de produtividade",
+    content: "Um bom café renova o foco e a energia.",
+    icon: <Coffee size={18} className="text-blue-500" />,
+  },
+  {
+    title: "Dica de Produtividade",
+    content: "Comece pelo mais difícil. O resto será mais leve.",
+    icon: <Coffee size={18} className="text-blue-500" />,
+  },
+]
+
 function Dashboard() {
   // Estados
   const [currentTime, setCurrentTime] = useState(new Date())
-  const [rankingUsers, setRankingUsers] = useState<RankingUser[]>([])
   const [birthdays, setBirthdays] = useState<Birthday[]>([])
   const [, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [dayMessage, setDayMessage] = useState("")
+  const [currentTip, setCurrentTip] = useState(0)
 
   // Efeito para buscar dados do dashboard
   useEffect(() => {
@@ -52,13 +63,10 @@ function Dashboard() {
 
         // Tentar buscar dados da API
         try {
-          const [rankingResponse, birthdaysResponse, userResponse] = await Promise.all([
-            api.get("/dashboard/ranking"),
+          const [birthdaysResponse, userResponse] = await Promise.all([
             api.get("/dashboard/birthdays"),
             api.get("/user/profile"),
           ])
-
-          setRankingUsers(rankingResponse.data)
 
           // Ordenar aniversariantes por dia do mês
           const sortedBirthdays = birthdaysResponse.data.sort((a: Birthday, b: Birthday) => a.day - b.day)
@@ -68,21 +76,13 @@ function Dashboard() {
         } catch (error) {
           console.error("Erro ao buscar dados da API, usando dados mockados:", error)
 
-          // Dados mockados [md]
+          // Dados mockados
           const mockUser: User = {
             id: "user-123",
             name: "João Silva",
             avatar: "https://i.pravatar.cc/150?img=3",
             department: "Desenvolvimento",
           }
-
-          const mockRanking: RankingUser[] = [
-            { id: "user-3", name: "Mariana Costa", avatar: "https://i.pravatar.cc/150?img=5", score: 100, position: 1 },
-            { id: "user-1", name: "Ana Souza", avatar: "https://i.pravatar.cc/150?img=1", score: 95, position: 2 },
-            { id: "user-6", name: "Roberto Alves", avatar: "https://i.pravatar.cc/150?img=12", score: 90, position: 3 },
-            { id: "user-5", name: "Juliana Lima", avatar: "https://i.pravatar.cc/150?img=9", score: 85, position: 4 },
-            { id: "user-2", name: "Carlos Mendes", avatar: "https://i.pravatar.cc/150?img=4", score: 80, position: 5 },
-          ]
 
           // Aniversariantes do mês atual ordenados por dia
           const currentMonth = new Date().getMonth() + 1
@@ -114,7 +114,6 @@ function Dashboard() {
           ]
 
           setCurrentUser(mockUser)
-          setRankingUsers(mockRanking)
           setBirthdays(mockBirthdays)
         }
 
@@ -134,8 +133,14 @@ function Dashboard() {
       setCurrentTime(new Date())
     }, 60000)
 
+    // Alternar entre as dicas a cada 10 segundos
+    const tipInterval = setInterval(() => {
+      setCurrentTip((prev) => (prev + 1) % quickTips.length)
+    }, 10000)
+
     return () => {
       clearInterval(clockInterval)
+      clearInterval(tipInterval)
     }
   }, [])
 
@@ -161,13 +166,13 @@ function Dashboard() {
           </motion.div>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Mural de Mensagem do Dia */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
-            className="lg:col-span-3"
+            className="md:col-span-2"
           >
             <Card>
               <CardHeader>
@@ -182,53 +187,11 @@ function Dashboard() {
             </Card>
           </motion.div>
 
-          {/* Seção de Ranking Semanal */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-            className="md:col-span-1"
-          >
-            <Card className="h-full">
-              <CardHeader>
-                <Award size={18} className="text-blue-500" />
-                <h2 className="text-lg font-semibold">Ranking Semanal</h2>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="divide-y divide-gray-100">
-                  {rankingUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className={`flex items-center justify-between p-4 ${user.position === 1 ? "bg-blue-50" : ""}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex-shrink-0 w-8 text-center">
-                          {user.position === 1 && <span className="text-xl">🥇</span>}
-                          {user.position === 2 && <span className="text-xl">🥈</span>}
-                          {user.position === 3 && <span className="text-xl">🥉</span>}
-                          {user.position > 3 && (
-                            <span className="text-sm font-medium text-gray-500">#{user.position}</span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Avatar src={user.avatar} alt={user.name} className="w-8 h-8" />
-                          <span className="font-medium text-sm">{user.name}</span>
-                        </div>
-                      </div>
-                      <div className="text-sm font-semibold text-blue-600">{user.score} pts</div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
           {/* Seção de Aniversariantes */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-            className="md:col-span-1"
+            transition={{ duration: 0.3, delay: 0.1 }}
           >
             <Card className="h-full">
               <CardHeader>
@@ -268,6 +231,36 @@ function Dashboard() {
                     <p>Nenhum aniversariante este mês</p>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Novo Card - Recursos para Funcionários */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+          >
+            <Card className="h-full">
+              <CardHeader>
+                {quickTips[currentTip].icon}
+                <h2 className="text-lg font-semibold">{quickTips[currentTip].title}</h2>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-gray-50 rounded-md p-4 mb-4">
+                  <p className="text-gray-700">{quickTips[currentTip].content}</p>
+                </div>
+                <div className="flex justify-between">
+                  <div className="flex space-x-1">
+                    {quickTips.map((_, index) => (
+                      <div
+                        key={index}
+                        className={`h-1.5 rounded-full w-6 ${index === currentTip ? "bg-blue-500" : "bg-gray-200"}`}
+                      ></div>
+                    ))}
+                  </div>
+                
+                </div>
               </CardContent>
             </Card>
           </motion.div>
