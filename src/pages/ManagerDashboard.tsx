@@ -7,20 +7,20 @@ import { Link } from "react-router-dom"
 import {
   Users,
   Clock,
-  Calendar,
   FileText,
   UserCheck,
   UserX,
   Coffee,
-  CheckCircle,
   Eye,
   MessageSquare,
   MapPin,
+  Filter,
+  Search,
+  X,
 } from "lucide-react"
 import api from "@/services/api"
 import Layout from "@/components/Layout"
 import { Card, CardHeader, CardContent } from "@/components/ui/Card"
-import { Badge } from "@/components/ui/Badge"
 import { Button } from "@/components/ui/Button"
 import { Avatar } from "@/components/ui/Avatar"
 import { SummaryItem } from "@/components/ui/SummaryItem"
@@ -51,16 +51,6 @@ interface TeamMember {
   }
 }
 
-interface PendingRequest {
-  id: string
-  type: "adjustment" | "absence" | "overtime"
-  employeeName: string
-  employeeAvatar?: string
-  date: string
-  status: "pending" | "approved" | "rejected"
-  description: string
-}
-
 interface TeamMetrics {
   totalMembers: number
   presentToday: number
@@ -74,14 +64,13 @@ interface TeamMetrics {
 function ManagerDashboard() {
   // Estados
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
-  const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([])
   const [metrics, setMetrics] = useState<TeamMetrics | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<"team" | "requests">("team")
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string | null>(null)
   const [departmentFilter, setDepartmentFilter] = useState<string | null>(null)
   const [currentDate] = useState(new Date())
+  const [showFilters, setShowFilters] = useState(false)
 
   // Efeito para buscar dados
   useEffect(() => {
@@ -91,14 +80,12 @@ function ManagerDashboard() {
 
         // Tentar buscar dados da API
         try {
-          const [teamResponse, requestsResponse, metricsResponse] = await Promise.all([
+          const [teamResponse, metricsResponse] = await Promise.all([
             api.get("/manager/team"),
-            api.get("/manager/pending-requests"),
             api.get("/manager/metrics"),
           ])
 
           setTeamMembers(teamResponse.data)
-          setPendingRequests(requestsResponse.data)
           setMetrics(metricsResponse.data)
         } catch (error) {
           console.error("Erro ao buscar dados da API, usando dados mockados:", error)
@@ -168,36 +155,6 @@ function ManagerDashboard() {
             },
           ]
 
-          const mockPendingRequests: PendingRequest[] = [
-            {
-              id: "req-1",
-              type: "adjustment",
-              employeeName: "Ana Silva",
-              employeeAvatar: "https://i.pravatar.cc/150?img=1",
-              date: "10/04/2025",
-              status: "pending",
-              description: "Ajuste de ponto: esqueci de registrar saída às 18:00",
-            },
-            {
-              id: "req-2",
-              type: "absence",
-              employeeName: "Roberto Alves",
-              employeeAvatar: "https://i.pravatar.cc/150?img=7",
-              date: "12/04/2025",
-              status: "pending",
-              description: "Consulta médica das 14:00 às 16:00",
-            },
-            {
-              id: "req-3",
-              type: "overtime",
-              employeeName: "Carlos Mendes",
-              employeeAvatar: "https://i.pravatar.cc/150?img=4",
-              date: "09/04/2025",
-              status: "pending",
-              description: "Horas extras: 2h para finalização do projeto",
-            },
-          ]
-
           const mockMetrics: TeamMetrics = {
             totalMembers: 5,
             presentToday: 3,
@@ -209,7 +166,6 @@ function ManagerDashboard() {
           }
 
           setTeamMembers(mockTeamMembers)
-          setPendingRequests(mockPendingRequests)
           setMetrics(mockMetrics)
         }
       } catch (error) {
@@ -248,32 +204,6 @@ function ManagerDashboard() {
     return Array.from(depts)
   }, [teamMembers])
 
-  // Função para aprovar solicitação
-  const handleApproveRequest = async (id: string) => {
-    try {
-      // Aqui seria a chamada real à API
-      // await api.post(`/manager/requests/${id}/approve`)
-
-      // Atualização otimista da UI
-      setPendingRequests((prev) => prev.map((req) => (req.id === id ? { ...req, status: "approved" } : req)))
-    } catch (error) {
-      console.error("Erro ao aprovar solicitação:", error)
-    }
-  }
-
-  // Função para rejeitar solicitação
-  const handleRejectRequest = async (id: string) => {
-    try {
-      // Aqui seria a chamada real à API
-      // await api.post(`/manager/requests/${id}/reject`)
-
-      // Atualização otimista da UI
-      setPendingRequests((prev) => prev.map((req) => (req.id === id ? { ...req, status: "rejected" } : req)))
-    } catch (error) {
-      console.error("Erro ao rejeitar solicitação:", error)
-    }
-  }
-
   // Função para obter classe de status
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -285,12 +215,6 @@ function ManagerDashboard() {
         return "bg-blue-500"
       case "NOT_STARTED":
         return "bg-gray-400"
-      case "pending":
-        return "bg-amber-100 text-amber-800"
-      case "approved":
-        return "bg-green-100 text-green-800"
-      case "rejected":
-        return "bg-red-100 text-red-800"
       default:
         return "bg-gray-400"
     }
@@ -307,12 +231,6 @@ function ManagerDashboard() {
         return "Em intervalo"
       case "NOT_STARTED":
         return "Não iniciou"
-      case "pending":
-        return "Pendente"
-      case "approved":
-        return "Aprovado"
-      case "rejected":
-        return "Rejeitado"
       default:
         return status
     }
@@ -334,34 +252,6 @@ function ManagerDashboard() {
     }
   }
 
-  // Função para obter ícone de tipo de solicitação
-  const getRequestTypeIcon = (type: string) => {
-    switch (type) {
-      case "adjustment":
-        return <Clock size={16} className="text-blue-500" />
-      case "absence":
-        return <Calendar size={16} className="text-purple-500" />
-      case "overtime":
-        return <Clock size={16} className="text-amber-500" />
-      default:
-        return <FileText size={16} className="text-gray-500" />
-    }
-  }
-
-  // Função para obter texto de tipo de solicitação
-  const getRequestTypeText = (type: string) => {
-    switch (type) {
-      case "adjustment":
-        return "Ajuste de Ponto"
-      case "absence":
-        return "Ausência"
-      case "overtime":
-        return "Hora Extra"
-      default:
-        return type
-    }
-  }
-
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 py-6">
@@ -379,8 +269,19 @@ function ManagerDashboard() {
           </div>
 
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              leftIcon={<Filter size={16} />}
+            >
+              Filtros
+            </Button>
             <Button variant="outline" size="sm" leftIcon={<FileText size={16} />} as={Link} to="/team-reports">
               Relatórios
+            </Button>
+            <Button variant="outline" size="sm" leftIcon={<FileText size={16} />} as={Link} to="/adjustments">
+              Solicitações
             </Button>
           </div>
         </motion.div>
@@ -440,187 +341,172 @@ function ManagerDashboard() {
               </div>
             )}
 
-            {/* Tabs */}
-            <div className="flex border-b border-gray-200 mb-6">
-              <button
-                className={`px-4 py-2 font-medium text-sm ${
-                  activeTab === "team"
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-                onClick={() => setActiveTab("team")}
+            {/* Filtros */}
+            {showFilters && (
+              <motion.div
+                className="mb-6"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
               >
-                Equipe
-              </button>
-              <button
-                className={`px-4 py-2 font-medium text-sm ${
-                  activeTab === "requests"
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-                onClick={() => setActiveTab("requests")}
-              >
-                Solicitações
-                {pendingRequests.filter((req) => req.status === "pending").length > 0 && (
-                  <Badge variant="error" className="ml-2 px-1.5 py-0.5">
-                    {pendingRequests.filter((req) => req.status === "pending").length}
-                  </Badge>
-                )}
-              </button>
-            </div>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+                          Status:
+                        </label>
+                        <select
+                          id="status"
+                          value={statusFilter || ""}
+                          onChange={(e) => setStatusFilter(e.target.value || null)}
+                          className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        >
+                          <option value="">Todos</option>
+                          <option value="PRESENT">Presente</option>
+                          <option value="ABSENT">Ausente</option>
+                          <option value="BREAK">Em intervalo</option>
+                          <option value="NOT_STARTED">Não iniciou</option>
+                        </select>
+                      </div>
 
-            {/* Conteúdo da Tab */}
-            {activeTab === "team" ? (
-              <Card>
-                <CardHeader className="px-4 py-3 bg-gray-50 flex justify-between items-center">
-                  <div className="flex items-center">
-                    <Users size={18} className="text-blue-500 mr-2" />
-                    <h2 className="text-lg font-medium">Status da Equipe</h2>
-                  </div>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Buscar membro..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="text-sm px-3 py-1.5 border border-gray-300 rounded-md w-48 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
-                </CardHeader>
-                <div className="divide-y divide-gray-100">
-                  {filteredTeamMembers.length > 0 ? (
-                    filteredTeamMembers.map((member) => (
-                      <div key={member.id} className="p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Avatar src={member.avatar} alt={member.name} className="w-10 h-10" />
-                          <div>
-                            <h3 className="font-medium text-gray-900">{member.name}</h3>
-                            <p className="text-sm text-gray-500">{member.position || member.department}</p>
-                          </div>
-                        </div>
+                      <div>
+                        <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">
+                          Departamento:
+                        </label>
+                        <select
+                          id="department"
+                          value={departmentFilter || ""}
+                          onChange={(e) => setDepartmentFilter(e.target.value || null)}
+                          className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        >
+                          <option value="">Todos</option>
+                          {departments.map((dept) => (
+                            <option key={dept} value={dept}>
+                              {dept}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                        <div className="flex items-center gap-3">
-                          <div className="hidden md:block text-sm text-gray-500">
-                            {member.lastEntry
-                              ? `${
-                                  member.lastEntry.type === "CLOCK_IN"
-                                    ? "Entrada"
-                                    : member.lastEntry.type === "BREAK_START"
-                                      ? "Início do Intervalo"
-                                      : member.lastEntry.type === "BREAK_END"
-                                        ? "Fim do Intervalo"
-                                        : "Saída"
-                                } às ${format(new Date(member.lastEntry.timestamp), "HH:mm")}`
-                              : "Sem registros hoje"}
+                      <div>
+                        <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+                          Buscar:
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Search size={16} className="text-gray-400" />
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(member.status)}`}></div>
-                            <span className="text-sm font-medium text-gray-700">{getStatusText(member.status)}</span>
-                          </div>
-                          <div className="flex gap-1">
+                          <input
+                            type="text"
+                            id="search"
+                            placeholder="Buscar membro..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                          />
+                          {searchTerm && (
                             <button
-                              className="p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
-                              title="Ver detalhes"
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                              onClick={() => setSearchTerm("")}
                             >
-                              <Eye size={16} />
+                              <X size={16} className="text-gray-400 hover:text-gray-600" />
                             </button>
-                            <button
-                              className="p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
-                              title="Enviar mensagem"
-                            >
-                              <MessageSquare size={16} />
-                            </button>
-                            {member.location && (
-                              <button
-                                className="p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
-                                title="Ver localização"
-                              >
-                                <MapPin size={16} />
-                              </button>
-                            )}
-                          </div>
+                          )}
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="p-6 text-center text-gray-500">
-                      <Users size={32} className="mx-auto mb-2 text-gray-300" />
-                      <p>Nenhum membro encontrado</p>
                     </div>
-                  )}
-                </div>
-              </Card>
-            ) : (
-              <Card>
-                <CardHeader className="px-4 py-3 bg-gray-50">
-                  <div className="flex items-center">
-                    <FileText size={18} className="text-blue-500 mr-2" />
-                    <h2 className="text-lg font-medium">Solicitações Pendentes</h2>
-                  </div>
-                </CardHeader>
-                <div className="divide-y divide-gray-100">
-                  {pendingRequests.length > 0 ? (
-                    pendingRequests.map((request) => (
-                      <div key={request.id} className="p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-3">
-                            <Avatar src={request.employeeAvatar} alt={request.employeeName} className="w-8 h-8" />
-                            <div>
-                              <h3 className="font-medium text-gray-900">{request.employeeName}</h3>
-                              <div className="flex items-center gap-1 text-sm text-gray-500">
-                                {getRequestTypeIcon(request.type)}
-                                <span>{getRequestTypeText(request.type)}</span>
-                                <span>•</span>
-                                <span>{request.date}</span>
-                              </div>
-                            </div>
-                          </div>
 
-                          <Badge
-                            variant={
-                              request.status === "approved"
-                                ? "success"
-                                : request.status === "rejected"
-                                  ? "error"
-                                  : "warning"
-                            }
-                          >
-                            {getStatusText(request.status)}
-                          </Badge>
-                        </div>
-
-                        <p className="text-sm text-gray-600 mb-3">{request.description}</p>
-
-                        {request.status === "pending" && (
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleRejectRequest(request.id)}
-                              leftIcon={<UserX size={14} />}
-                            >
-                              Rejeitar
-                            </Button>
-                            <Button
-                              size="sm"
-                              onClick={() => handleApproveRequest(request.id)}
-                              leftIcon={<UserCheck size={14} />}
-                            >
-                              Aprovar
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-6 text-center text-gray-500">
-                      <CheckCircle size={32} className="mx-auto mb-2 text-green-500" />
-                      <p>Não há solicitações pendentes</p>
+                    <div className="flex justify-end mt-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setStatusFilter(null)
+                          setDepartmentFilter(null)
+                          setSearchTerm("")
+                        }}
+                      >
+                        Limpar Filtros
+                      </Button>
                     </div>
-                  )}
-                </div>
-              </Card>
+                  </CardContent>
+                </Card>
+              </motion.div>
             )}
+
+            {/* Status da Equipe */}
+            <Card>
+              <CardHeader className="px-4 py-3 bg-gray-50 flex justify-between items-center">
+                <div className="flex items-center">
+                  <Users size={18} className="text-blue-500 mr-2" />
+                  <h2 className="text-lg font-medium">Status da Equipe</h2>
+                </div>
+              </CardHeader>
+              <div className="divide-y divide-gray-100">
+                {filteredTeamMembers.length > 0 ? (
+                  filteredTeamMembers.map((member) => (
+                    <div key={member.id} className="p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Avatar src={member.avatar} alt={member.name} className="w-10 h-10" />
+                        <div>
+                          <h3 className="font-medium text-gray-900">{member.name}</h3>
+                          <p className="text-sm text-gray-500">{member.position || member.department}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="hidden md:block text-sm text-gray-500">
+                          {member.lastEntry
+                            ? `${
+                                member.lastEntry.type === "CLOCK_IN"
+                                  ? "Entrada"
+                                  : member.lastEntry.type === "BREAK_START"
+                                    ? "Início do Intervalo"
+                                    : member.lastEntry.type === "BREAK_END"
+                                      ? "Fim do Intervalo"
+                                      : "Saída"
+                              } às ${format(new Date(member.lastEntry.timestamp), "HH:mm")}`
+                            : "Sem registros hoje"}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(member.status)}`}></div>
+                          <span className="text-sm font-medium text-gray-700">{getStatusText(member.status)}</span>
+                        </div>
+                        <div className="flex gap-1">
+                          <button
+                            className="p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                            title="Ver detalhes"
+                          >
+                            <Eye size={16} />
+                          </button>
+                          <button
+                            className="p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                            title="Enviar mensagem"
+                          >
+                            <MessageSquare size={16} />
+                          </button>
+                          {member.location && (
+                            <button
+                              className="p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                              title="Ver localização"
+                            >
+                              <MapPin size={16} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-6 text-center text-gray-500">
+                    <Users size={32} className="mx-auto mb-2 text-gray-300" />
+                    <p>Nenhum membro encontrado</p>
+                  </div>
+                )}
+              </div>
+            </Card>
           </>
         )}
       </div>

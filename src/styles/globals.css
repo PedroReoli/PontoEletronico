@@ -365,3 +365,43 @@
 .request-empty {
   @apply p-6 text-center text-gray-500;
 }
+
+/* Ajustes de solicitações - Novos estilos */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.adjustment-request-table {
+  @apply text-sm;
+}
+
+.adjustment-request-table th {
+  @apply px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider;
+}
+
+.adjustment-request-table td {
+  @apply px-3 py-2;
+}
+
+.adjustment-request-badge {
+  @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+}
+
+.adjustment-request-badge-pending {
+  @apply bg-amber-100 text-amber-800;
+}
+
+.adjustment-request-badge-approved {
+  @apply bg-green-100 text-green-800;
+}
+
+.adjustment-request-badge-rejected {
+  @apply bg-red-100 text-red-800;
+}
+
+.adjustment-request-comment {
+  @apply mt-1 text-xs text-gray-500 italic;
+}
