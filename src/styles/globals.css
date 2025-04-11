@@ -310,3 +310,58 @@
 .calendar-day-content {
   @apply flex flex-col gap-0.5;
 }
+
+/* Dashboard do Gestor */
+.team-status-indicator {
+  @apply w-2.5 h-2.5 rounded-full;
+}
+
+.team-status-online {
+  @apply bg-green-500;
+}
+
+.team-status-offline {
+  @apply bg-gray-400;
+}
+
+.team-status-break {
+  @apply bg-blue-500;
+}
+
+.team-status-late {
+  @apply bg-amber-500;
+}
+
+/* Tabs */
+.tab-button {
+  @apply px-4 py-2 font-medium text-sm border-b-2 transition-colors;
+}
+
+.tab-button-active {
+  @apply text-blue-600 border-blue-600;
+}
+
+.tab-button-inactive {
+  @apply text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300;
+}
+
+/* Solicitações */
+.request-card {
+  @apply p-4 border-b border-gray-100 last:border-b-0;
+}
+
+.request-header {
+  @apply flex items-center justify-between mb-2;
+}
+
+.request-type {
+  @apply flex items-center gap-1 text-sm text-gray-500;
+}
+
+.request-actions {
+  @apply flex justify-end gap-2 mt-3;
+}
+
+.request-empty {
+  @apply p-6 text-center text-gray-500;
+}
