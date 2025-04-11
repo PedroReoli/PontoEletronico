@@ -2,8 +2,11 @@
 
 import { useState, type FormEvent } from "react"
 import { Link } from "react-router-dom"
-import api from "../services/api"
 import { motion, AnimatePresence } from "framer-motion"
+import api from "../services/api"
+import { Input } from "../components/ui/Input"
+import { Button } from "../components/ui/Button"
+import { Alert } from "../components/ui/Alert"
 
 function ForgotPassword() {
   const [email, setEmail] = useState("")
@@ -31,57 +34,6 @@ function ForgotPassword() {
     }
   }
 
-  // Variants for animations
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        when: "beforeChildren",
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
-  }
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { type: "spring", stiffness: 300, damping: 24 }
-    }
-  }
-
-  const logoVariants = {
-    hidden: { scale: 0, rotate: -180 },
-    visible: {
-      scale: 1,
-      rotate: 0,
-      transition: { type: "spring", stiffness: 260, damping: 20 }
-    }
-  }
-
-  const buttonVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-    hover: { scale: 1.03, boxShadow: "0 10px 15px -3px rgba(0, 114, 245, 0.3), 0 4px 6px -2px rgba(0, 114, 245, 0.15)" },
-    tap: { scale: 0.97 }
-  }
-
-  const successIconVariants = {
-    hidden: { scale: 0 },
-    visible: {
-      scale: 1,
-      transition: {
-        type: "spring",
-        stiffness: 260,
-        damping: 20,
-        delay: 0.2
-      }
-    }
-  }
-
   // Floating elements for background
   const floatingElements = [
     { size: 60, top: "10%", left: "5%", delay: 0 },
@@ -91,10 +43,10 @@ function ForgotPassword() {
   ]
 
   return (
-    <div className="auth-container">
+    <div className="auth-page">
       {/* Floating background elements */}
       {floatingElements.map((el, index) => (
-        <motion.div
+        <div
           key={index}
           className="floating-element"
           style={{
@@ -103,18 +55,8 @@ function ForgotPassword() {
             top: el.top,
             left: el.left,
             right: el.right,
-            bottom: el.bottom
-          }}
-          animate={{
-            y: [0, 15, 0],
-            x: [0, 10, 0],
-            opacity: [0.5, 0.7, 0.5]
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            repeatType: "reverse",
-            delay: el.delay
+            bottom: el.bottom,
+            animationDelay: `${el.delay}s`,
           }}
         />
       ))}
@@ -125,75 +67,72 @@ function ForgotPassword() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
       >
-        {/* Header */}
-        <motion.div
-          className="auth-header"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.div className="auth-logo" variants={logoVariants}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+        <div className="p-8">
+          <motion.div
+            className="text-center mb-8"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <motion.div
+              className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white mx-auto mb-4"
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 260, damping: 20 }}
             >
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-           
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </motion.div>
+            <motion.h2
+              className="text-2xl font-bold text-gray-800"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              Recuperação de Senha
+            </motion.h2>
+            <motion.p
+              className="text-gray-600 mt-1"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              Informe seu e-mail para receber instruções
+            </motion.p>
           </motion.div>
-          <motion.h2 variants={itemVariants}>Recuperação de Senha</motion.h2>
-          <motion.p variants={itemVariants}>Informe seu e-mail para receber instruções</motion.p>
-        </motion.div>
 
-        {/* Form */}
-        <div className="auth-form">
           <AnimatePresence>
             {error && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                className="alert alert-error"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="8" x2="12" y2="12"></line>
-                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
+              <Alert variant="error" onClose={() => setError("")}>
                 {error}
-              </motion.div>
+              </Alert>
             )}
           </AnimatePresence>
 
           {success ? (
             <motion.div
-              className="success-container"
-              initial="hidden"
-              animate="visible"
-              variants={containerVariants}
+              className="text-center"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4 }}
             >
               <motion.div
-                className="success-icon"
-                variants={successIconVariants}
+                className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-600 mx-auto mb-4"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.2 }}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -210,77 +149,52 @@ function ForgotPassword() {
                   <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>
               </motion.div>
-              <motion.h3 variants={itemVariants}>E-mail enviado!</motion.h3>
-              <motion.p variants={itemVariants}>
-                Enviamos um link para recuperação de senha para o e-mail <strong>{email}</strong>. Por favor, verifique
-                sua caixa de entrada e siga as instruções.
+              <motion.h3
+                className="text-xl font-bold text-gray-800 mb-2"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                E-mail enviado!
+              </motion.h3>
+              <motion.p
+                className="text-gray-600 mb-6"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                Enviamos um link para recuperação de senha para o e-mail{" "}
+                <strong className="font-medium">{email}</strong>. Por favor, verifique sua caixa de entrada e siga as
+                instruções.
               </motion.p>
-              <motion.div variants={itemVariants}>
-                <Link to="/login">
-                  <motion.button
-                    className="btn btn-primary"
-                    variants={buttonVariants}
-                    whileHover="hover"
-                    whileTap="tap"
-                  >
-                    Voltar para o Login
-                  </motion.button>
-                </Link>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <Button as={Link} to="/login" fullWidth>
+                  Voltar para o Login
+                </Button>
               </motion.div>
             </motion.div>
           ) : (
             <form onSubmit={handleSubmit}>
-              <motion.div 
-                className="form-group"
-                variants={itemVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                <label htmlFor="email">E-mail</label>
-                <div className="input-with-icon">
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="seu@email.com"
-                    disabled={loading}
-                  />
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                    <polyline points="22,6 12,13 2,6"></polyline>
-                  </svg>
-                </div>
-              </motion.div>
-
-              <motion.button
-                variants={buttonVariants}
-                initial="hidden"
-                animate="visible"
-                whileHover="hover"
-                whileTap="tap"
-                type="submit"
-                disabled={loading}
-                className="btn btn-primary w-full"
-                transition={{ delay: 0.2 }}
-              >
-                {loading ? (
-                  <>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  label="E-mail"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                  required
+                  autoComplete="email"
+                  icon={
                     <svg
-                      className="animate-spin mr-2"
                       xmlns="http://www.w3.org/2000/svg"
                       width="20"
                       height="20"
@@ -291,45 +205,46 @@ function ForgotPassword() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     >
-                      <line x1="12" y1="2" x2="12" y2="6"></line>
-                      <line x1="12" y1="18" x2="12" y2="22"></line>
-                      <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
-                      <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
-                      <line x1="2" y1="12" x2="6" y2="12"></line>
-                      <line x1="18" y1="12" x2="22" y2="12"></line>
-                      <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
-                      <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                      <polyline points="22,6 12,13 2,6"></polyline>
                     </svg>
-                    Enviando...
-                  </>
-                ) : (
-                  "Enviar Instruções"
-                )}
-              </motion.button>
+                  }
+                />
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="mt-6"
+              >
+                <Button type="submit" fullWidth isLoading={loading}>
+                  {loading ? "Enviando..." : "Enviar Instruções"}
+                </Button>
+              </motion.div>
             </form>
           )}
-        </div>
 
-        <motion.div 
-          className="auth-footer"
-          variants={itemVariants}
-          initial="hidden"
-          animate="visible"
-          transition={{ delay: 0.3 }}
-        >
-          <p>
-            <Link to="/login" className="font-medium">
-              Voltar para o login
-            </Link>
-          </p>
-        </motion.div>
+          <motion.div
+            className="text-center mt-8 text-sm text-gray-600"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+          >
+            <p>
+              <Link to="/login" className="font-medium text-blue-600 hover:text-blue-800 transition-colors">
+                Voltar para o login
+              </Link>
+            </p>
+          </motion.div>
+        </div>
       </motion.div>
 
-      <motion.div 
-        className="auth-copyright"
+      <motion.div
+        className="mt-8 text-center text-xs text-gray-500"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
+        transition={{ delay: 0.8 }}
       >
         &copy; {new Date().getFullYear()} Controle de Ponto. Todos os direitos reservados.
       </motion.div>

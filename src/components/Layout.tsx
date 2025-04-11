@@ -1,15 +1,55 @@
 "use client"
 
 import { useState, useEffect, useRef, type ReactNode } from "react"
-import { Link, useLocation } from "react-router-dom"
+import { useLocation } from "react-router-dom"
 import { useAuth } from "../hooks/useAuth"
 import { motion, AnimatePresence } from "framer-motion"
 import Topbar from "./Topbar"
-// import "./Layout.css"
+import { Home, Clock, FileText, Users, Settings, Grid, User, Building, Calendar, Activity, ChevronRight } from 'lucide-react'
+import { Link } from "react-router-dom"
 
 // Tipos
 interface LayoutProps {
   children: ReactNode
+}
+
+interface NavItemProps {
+  to: string
+  icon: ReactNode
+  label: string
+  onClick?: () => void
+}
+
+function NavItem({ to, icon, label, onClick }: NavItemProps) {
+  const location = useLocation()
+  const isActive = location.pathname === to || location.pathname.startsWith(`${to}/`)
+
+  return (
+    <li>
+      <Link
+        to={to}
+        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+          isActive 
+            ? "bg-blue-50 text-blue-700 font-medium" 
+            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+        }`}
+        onClick={onClick}
+        aria-current={isActive ? "page" : undefined}
+      >
+        <span className="flex-shrink-0 text-[20px]">{icon}</span>
+        <span className="flex-1 text-sm">{label}</span>
+        {isActive && <ChevronRight size={16} className="flex-shrink-0 text-blue-500" />}
+      </Link>
+    </li>
+  )
+}
+
+function NavSection({ title }: { title: string }) {
+  return (
+    <div className="px-3 py-2">
+      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{title}</h3>
+    </div>
+  )
 }
 
 function Layout({ children }: LayoutProps) {
@@ -64,405 +104,174 @@ function Layout({ children }: LayoutProps) {
     }
   }, [sidebarOpen])
 
-  const isActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(`${path}/`)
-  }
-
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen)
   }
 
   return (
-    <div className="layout">
+    <div className="flex h-screen bg-gray-50">
       {/* Skip to content link for accessibility */}
       <a href="#main-content" className="skip-to-content">
         Pular para o conteúdo
       </a>
 
-      {/* Topbar Component */}
-      <Topbar toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
+      {/* Sidebar overlay for mobile */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-20 lg:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
-      <div className="layout-container">
-        {/* Sidebar overlay for mobile */}
-        <AnimatePresence>
-          {sidebarOpen && (
-            <motion.div
-              className="sidebar-overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSidebarOpen(false)}
-            ></motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Left Sidebar */}
-        <motion.aside
-          ref={sidebarRef}
-          className={`leftsidebar ${sidebarOpen ? "open" : ""}`}
-          animate={sidebarOpen ? "open" : "closed"}
-          aria-label="Menu de navegação principal"
-        >
-          <div className="sidebar-content">
-            <nav className="sidebar-nav" aria-label="Menu principal">
-              <ul className="nav-list">
-                {/* Dashboard */}
-                <motion.li
-                  className="nav-item"
-                  whileHover={{ x: 5 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                >
-                  <Link
-                    to="/dashboard"
-                    className={`nav-link ${isActive("/dashboard") ? "active" : ""}`}
-                    onClick={() => setSidebarOpen(false)}
-                    aria-current={isActive("/dashboard") ? "page" : undefined}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                      <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                    </svg>
-                    <span>Dashboard</span>
-                  </Link>
-                </motion.li>
-
-                {/* Registro de Ponto */}
-                <motion.li
-                  className="nav-item"
-                  whileHover={{ x: 5 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                >
-                  <Link
-                    to="/timesheet"
-                    className={`nav-link ${isActive("/timesheet") ? "active" : ""}`}
-                    onClick={() => setSidebarOpen(false)}
-                    aria-current={isActive("/timesheet") ? "page" : undefined}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
-                    <span>Registro de Ponto</span>
-                  </Link>
-                </motion.li>
-
-                {/* Relatórios */}
-                <motion.li
-                  className="nav-item"
-                  whileHover={{ x: 5 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                >
-                  <Link
-                    to="/reports"
-                    className={`nav-link ${isActive("/reports") ? "active" : ""}`}
-                    onClick={() => setSidebarOpen(false)}
-                    aria-current={isActive("/reports") ? "page" : undefined}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                      <polyline points="14 2 14 8 20 8"></polyline>
-                      <line x1="16" y1="13" x2="8" y2="13"></line>
-                      <line x1="16" y1="17" x2="8" y2="17"></line>
-                      <polyline points="10 9 9 9 8 9"></polyline>
-                    </svg>
-                    <span>Relatórios</span>
-                  </Link>
-                </motion.li>
-
-                {/* Seção de Gestão - Visível apenas para MANAGER e ADMIN */}
-                {(user?.role === "MANAGER" || user?.role === "ADMIN") && (
-                  <>
-                    <li className="nav-section">Gestão</li>
-
-                    {/* Gestão de Equipe */}
-                    <motion.li
-                      className="nav-item"
-                      whileHover={{ x: 5 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <Link
-                        to="/manager"
-                        className={`nav-link ${isActive("/manager") ? "active" : ""}`}
-                        onClick={() => setSidebarOpen(false)}
-                        aria-current={isActive("/manager") ? "page" : undefined}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                          <circle cx="9" cy="7" r="4"></circle>
-                          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                        <span>Gestão de Equipe</span>
-                      </Link>
-                    </motion.li>
-
-                    {/* Ajustes Pendentes */}
-                    <motion.li
-                      className="nav-item"
-                      whileHover={{ x: 5 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <Link
-                        to="/adjustments"
-                        className={`nav-link ${isActive("/adjustments") ? "active" : ""}`}
-                        onClick={() => setSidebarOpen(false)}
-                        aria-current={isActive("/adjustments") ? "page" : undefined}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <circle cx="12" cy="12" r="3"></circle>
-                          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                        </svg>
-                        <span>Ajustes Pendentes</span>
-                      </Link>
-                    </motion.li>
-                  </>
-                )}
-
-                {/* Seção de Administração - Visível apenas para ADMIN */}
-                {user?.role === "ADMIN" && (
-                  <>
-                    <li className="nav-section">Administração</li>
-
-                    {/* Painel Admin */}
-                    <motion.li
-                      className="nav-item"
-                      whileHover={{ x: 5 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <Link
-                        to="/admin"
-                        className={`nav-link ${
-                          isActive("/admin") &&
-                          !isActive("/admin/users") &&
-                          !isActive("/admin/companies") &&
-                          !isActive("/admin/shift-groups") &&
-                          !isActive("/admin/shift-types")
-                            ? "active"
-                            : ""
-                        }`}
-                        onClick={() => setSidebarOpen(false)}
-                        aria-current={
-                          isActive("/admin") &&
-                          !isActive("/admin/users") &&
-                          !isActive("/admin/companies") &&
-                          !isActive("/admin/shift-groups") &&
-                          !isActive("/admin/shift-types")
-                            ? "page"
-                            : undefined
-                        }
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <rect x="3" y="3" width="7" height="7"></rect>
-                          <rect x="14" y="3" width="7" height="7"></rect>
-                          <rect x="14" y="14" width="7" height="7"></rect>
-                          <rect x="3" y="14" width="7" height="7"></rect>
-                        </svg>
-                        <span>Painel Admin</span>
-                      </Link>
-                    </motion.li>
-
-                    {/* Usuários */}
-                    <motion.li
-                      className="nav-item"
-                      whileHover={{ x: 5 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <Link
-                        to="/admin/users"
-                        className={`nav-link ${isActive("/admin/users") ? "active" : ""}`}
-                        onClick={() => setSidebarOpen(false)}
-                        aria-current={isActive("/admin/users") ? "page" : undefined}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                          <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                        <span>Usuários</span>
-                      </Link>
-                    </motion.li>
-
-                    {/* Empresas */}
-                    <motion.li
-                      className="nav-item"
-                      whileHover={{ x: 5 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <Link
-                        to="/admin/companies"
-                        className={`nav-link ${isActive("/admin/companies") ? "active" : ""}`}
-                        onClick={() => setSidebarOpen(false)}
-                        aria-current={isActive("/admin/companies") ? "page" : undefined}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                        </svg>
-                        <span>Empresas</span>
-                      </Link>
-                    </motion.li>
-
-                    {/* Grupos de Jornada */}
-                    <motion.li
-                      className="nav-item"
-                      whileHover={{ x: 5 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <Link
-                        to="/admin/shift-groups"
-                        className={`nav-link ${isActive("/admin/shift-groups") ? "active" : ""}`}
-                        onClick={() => setSidebarOpen(false)}
-                        aria-current={isActive("/admin/shift-groups") ? "page" : undefined}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                          <line x1="16" y1="2" x2="16" y2="6"></line>
-                          <line x1="8" y1="2" x2="8" y2="6"></line>
-                          <line x1="3" y1="10" x2="21" y2="6"></line>
-                          <line x1="8" y1="2" x2="8" y2="6"></line>
-                          <line x1="3" y1="10" x2="21" y2="10"></line>
-                        </svg>
-                        <span>Grupos de Jornada</span>
-                      </Link>
-                    </motion.li>
-
-                    {/* Tipos de Plantão */}
-                    <motion.li
-                      className="nav-item"
-                      whileHover={{ x: 5 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <Link
-                        to="/admin/shift-types"
-                        className={`nav-link ${isActive("/admin/shift-types") ? "active" : ""}`}
-                        onClick={() => setSidebarOpen(false)}
-                        aria-current={isActive("/admin/shift-types") ? "page" : undefined}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                        </svg>
-                        <span>Tipos de Plantão</span>
-                      </Link>
-                    </motion.li>
-                  </>
-                )}
-              </ul>
-            </nav>
-
-            <div className="sidebar-footer">
-              {/* VERSAO PÓS-LANÇAMENTO */}
-              <div className="app-version">v1.0.0</div>
-            </div>
+      {/* Left Sidebar */}
+      <motion.aside
+        ref={sidebarRef}
+        className={`fixed lg:sticky top-0 left-0 z-30 h-full w-64 bg-white border-r border-gray-200 shadow-sm transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        }`}
+        initial={false}
+        animate={{ width: "16rem" }}
+      >
+        <div className="flex flex-col h-full">
+          {/* Sidebar header with logo */}
+          <div className="h-16 flex items-center px-4 border-b border-gray-200">
+            <Link to="/dashboard" className="flex items-center space-x-2">
+              <div className="flex items-center justify-center w-8 h-8 rounded-md bg-blue-600 text-white">
+                <Clock size={18} />
+              </div>
+              <span className="text-lg font-semibold text-gray-900">Controle de Ponto</span>
+            </Link>
           </div>
-        </motion.aside>
+
+          {/* Navigation */}
+          <nav className="flex-1 overflow-y-auto custom-scrollbar py-4" aria-label="Menu principal">
+            <ul className="space-y-1 px-2">
+              {/* Dashboard */}
+              <NavItem 
+                to="/dashboard" 
+                icon={<Home size={20} />} 
+                label="Dashboard" 
+                onClick={() => setSidebarOpen(false)} 
+              />
+
+              {/* Registro de Ponto */}
+              <NavItem 
+                to="/timesheet" 
+                icon={<Clock size={20} />} 
+                label="Registro de Ponto" 
+                onClick={() => setSidebarOpen(false)} 
+              />
+
+              {/* Relatórios */}
+              <NavItem 
+                to="/reports" 
+                icon={<FileText size={20} />} 
+                label="Relatórios" 
+                onClick={() => setSidebarOpen(false)} 
+              />
+
+              {/* Seção de Gestão - Visível apenas para MANAGER e ADMIN */}
+              {(user?.role === "MANAGER" || user?.role === "ADMIN") && (
+                <>
+                  <li className="mt-6">
+                    <NavSection title="Gestão" />
+                  </li>
+
+                  {/* Gestão de Equipe */}
+                  <NavItem 
+                    to="/manager" 
+                    icon={<Users size={20} />} 
+                    label="Gestão de Equipe" 
+                    onClick={() => setSidebarOpen(false)} 
+                  />
+
+                  {/* Ajustes Pendentes */}
+                  <NavItem 
+                    to="/adjustments" 
+                    icon={<Settings size={20} />} 
+                    label="Ajustes Pendentes" 
+                    onClick={() => setSidebarOpen(false)} 
+                  />
+                </>
+              )}
+
+              {/* Seção de Administração - Visível apenas para ADMIN */}
+              {user?.role === "ADMIN" && (
+                <>
+                  <li className="mt-6">
+                    <NavSection title="Administração" />
+                  </li>
+
+                  {/* Painel Admin */}
+                  <NavItem 
+                    to="/admin" 
+                    icon={<Grid size={20} />} 
+                    label="Painel Admin" 
+                    onClick={() => setSidebarOpen(false)} 
+                  />
+
+                  {/* Usuários */}
+                  <NavItem 
+                    to="/admin/users" 
+                    icon={<User size={20} />} 
+                    label="Usuários" 
+                    onClick={() => setSidebarOpen(false)} 
+                  />
+
+                  {/* Empresas */}
+                  <NavItem 
+                    to="/admin/companies" 
+                    icon={<Building size={20} />} 
+                    label="Empresas" 
+                    onClick={() => setSidebarOpen(false)} 
+                  />
+
+                  {/* Grupos de Jornada */}
+                  <NavItem 
+                    to="/admin/shift-groups" 
+                    icon={<Calendar size={20} />} 
+                    label="Grupos de Jornada" 
+                    onClick={() => setSidebarOpen(false)} 
+                  />
+
+                  {/* Tipos de Plantão */}
+                  <NavItem 
+                    to="/admin/shift-types" 
+                    icon={<Activity size={20} />} 
+                    label="Tipos de Plantão" 
+                    onClick={() => setSidebarOpen(false)} 
+                  />
+                </>
+              )}
+            </ul>
+          </nav>
+
+          {/* Sidebar footer */}
+          <div className="p-4 border-t border-gray-200 mt-auto">
+            <div className="text-xs text-gray-500 text-center">v1.0.0</div>
+          </div>
+        </div>
+      </motion.aside>
+
+      {/* Main content area */}
+      <div className="flex flex-col flex-1 w-0 overflow-hidden">
+        {/* Topbar Component */}
+        <Topbar toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
 
         {/* Main content */}
-        <main id="main-content" className="main-content">
+        <main id="main-content" className="flex-1 overflow-y-auto p-6">
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
+            className="max-w-7xl mx-auto"
           >
             {children}
           </motion.div>

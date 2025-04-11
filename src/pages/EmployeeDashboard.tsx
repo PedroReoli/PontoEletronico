@@ -8,12 +8,27 @@ import api from "../services/api"
 import { useAuth } from "../hooks/useAuth"
 import { useGeolocation } from "../hooks/useGeolocation"
 import Layout from "../components/Layout"
-import Button from "../components/ui/Button"
-import Card from "../components/ui/Card"
+import { TimeEntryCard } from "../components/ui/TimeEntryCard"
+import { NotificationToast } from "../components/ui/NotificationToast"
+import { EntryTypeIcon } from "../components/ui/EntryTypeIcon"
+import { SummaryItem } from "../components/ui/SummaryItem"
 import Modal from "../components/ui/Modal"
 import Camera from "../components/ui/Camera"
 import LocationOption from "../components/ui/LocationOption"
-import { Home, Building2, MapPin, CameraIcon } from "lucide-react"
+import {
+  Home,
+  Building2,
+  MapPin,
+  CameraIcon,
+  Clock,
+  Coffee,
+  FileEdit,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  X,
+  MoreHorizontal,
+} from "lucide-react"
 
 interface TimeEntry {
   id: string
@@ -91,7 +106,7 @@ function EmployeeDashboard() {
     fetchTodayEntries()
   }, [])
 
-  // Obter endereço a partir das coordenadas - com timeout maior
+  // Obter endereço a partir das coordenadas
   useEffect(() => {
     let timeoutId: NodeJS.Timeout | null = null
 
@@ -130,7 +145,6 @@ function EmployeeDashboard() {
       }
     }
 
-    // Aumentar o timeout para 10 segundos
     if (geolocation.latitude && geolocation.longitude && !geolocation.error) {
       timeoutId = setTimeout(() => {
         getAddressFromCoordinates()
@@ -150,7 +164,7 @@ function EmployeeDashboard() {
       iframe.width = "100%"
       iframe.height = "100%"
       iframe.style.border = "none"
-      iframe.style.borderRadius = "var(--border-radius-lg)"
+      iframe.style.borderRadius = "0.375rem"
       iframe.src = `https://www.openstreetmap.org/export/embed.html?bbox=${geolocation.longitude - 0.002},${geolocation.latitude - 0.002},${geolocation.longitude + 0.002},${geolocation.latitude + 0.002}&layer=mapnik&marker=${geolocation.latitude},${geolocation.longitude}`
 
       // Limpar o conteúdo anterior e adicionar o iframe
@@ -301,7 +315,6 @@ function EmployeeDashboard() {
 
     setNotificationMessage(message)
     setShowNotification(true)
-    setTimeout(() => setShowNotification(false), 5000)
   }
 
   const getNextActionType = (): "CLOCK_IN" | "BREAK_START" | "BREAK_END" | "CLOCK_OUT" | null => {
@@ -326,745 +339,288 @@ function EmployeeDashboard() {
   }
 
   const formatDate = (date: Date) => {
-    return format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+    return format(date, "dd 'de' MMMM", { locale: ptBR })
   }
 
-  const getEntryTypeIcon = (type: string) => {
+  const getEntryTypeLabel = (type: string) => {
     switch (type) {
       case "CLOCK_IN":
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-            <polyline points="10 17 15 12 10 7"></polyline>
-            <line x1="15" y1="12" x2="3" y2="12"></line>
-          </svg>
-        )
+        return "Entrada"
       case "BREAK_START":
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
-            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
-            <line x1="6" y1="1" x2="6" y2="4"></line>
-            <line x1="10" y1="1" x2="10" y2="4"></line>
-            <line x1="14" y1="1" x2="14" y2="4"></line>
-          </svg>
-        )
+        return "Início do Intervalo"
       case "BREAK_END":
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
-            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
-            <line x1="6" y1="1" x2="6" y2="4"></line>
-            <line x1="10" y1="1" x2="10" y2="4"></line>
-            <line x1="14" y1="1" x2="14" y2="4"></line>
-          </svg>
-        )
+        return "Fim do Intervalo"
       case "CLOCK_OUT":
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
-        )
+        return "Saída"
       default:
-        return null
+        return type
     }
   }
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
+  const getEntryTypeColor = (type: string) => {
+    switch (type) {
+      case "CLOCK_IN":
+        return "bg-green-100 text-green-800"
+      case "BREAK_START":
+        return "bg-amber-100 text-amber-800"
+      case "BREAK_END":
+        return "bg-blue-100 text-blue-800"
+      case "CLOCK_OUT":
+        return "bg-red-100 text-red-800"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
   }
 
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 },
+  const getActionButtonColor = (type: string | null) => {
+    switch (type) {
+      case "CLOCK_IN":
+        return "bg-green-600 hover:bg-green-700"
+      case "BREAK_START":
+        return "bg-amber-500 hover:bg-amber-600"
+      case "BREAK_END":
+        return "bg-blue-600 hover:bg-blue-700"
+      case "CLOCK_OUT":
+        return "bg-red-600 hover:bg-red-700"
+      default:
+        return "bg-gray-600 hover:bg-gray-700"
+    }
   }
 
   return (
     <Layout>
-      <motion.div
-        className="employee-dashboard"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-      >
+      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4">
         {/* Notificação flutuante */}
-        <AnimatePresence>
-          {showNotification && (
-            <motion.div
-              className="notification"
-              initial={{ opacity: 0, y: -50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -50 }}
-            >
-              <div className="notification-content">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-                <span>{notificationMessage}</span>
-              </div>
-              <button className="notification-close" onClick={() => setShowNotification(false)}>
-                ×
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <NotificationToast
+          message={notificationMessage}
+          show={showNotification}
+          onClose={() => setShowNotification(false)}
+        />
 
-        <motion.div
-          className="dashboard-header"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1>Registro de Ponto</h1>
-          <motion.div
-            className="date-display"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            {formatDate(currentTime)}
-          </motion.div>
-        </motion.div>
+        {/* Cabeçalho compacto */}
+        <header className="mb-3 flex justify-between items-center">
+          <div>
+            <h1 className="text-lg sm:text-xl font-bold text-gray-800">Registro de Ponto</h1>
+            <p className="text-xs text-gray-500">{formatDate(currentTime)}</p>
+          </div>
+          <div className="clock-pulse text-xl sm:text-2xl font-bold text-gray-800 tabular-nums">
+            {formatTime(currentTime)}
+          </div>
+        </header>
 
-        <motion.div className="dashboard-grid" variants={container} initial="hidden" animate="show">
-          {/* Card do relógio */}
-          <Card title="Horário atual" className="time-display-card">
-            <motion.div className="time-display">
-              <motion.div
-                className="current-time"
-                animate={{
-                  scale: [1, 1.03, 1],
-                  transition: {
-                    duration: 1,
-                    repeat: Number.POSITIVE_INFINITY,
-                    repeatType: "reverse",
-                  },
-                }}
-              >
-                {formatTime(currentTime)}
-              </motion.div>
-            </motion.div>
-          </Card>
-
+        {/* Grid de cards - layout mais compacto */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Card de resumo do dia */}
-          <Card title="Resumo do Dia" className="today-summary">
-            <div className="summary-content">
-              <div className="summary-item">
-                <div className="summary-icon hours">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                  </svg>
-                </div>
-                <div className="summary-details">
-                  <span className="summary-label">Horas Trabalhadas</span>
-                  <span className="summary-value">{todaySummary.hoursWorked}</span>
-                </div>
-              </div>
-              <div className="summary-item">
-                <div className="summary-icon break">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
-                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
-                    <line x1="6" y1="1" x2="6" y2="4"></line>
-                    <line x1="10" y1="1" x2="10" y2="4"></line>
-                    <line x1="14" y1="1" x2="14" y2="4"></line>
-                  </svg>
-                </div>
-                <div className="summary-details">
-                  <span className="summary-label">Tempo de Intervalo</span>
-                  <span className="summary-value">{todaySummary.breakTime}</span>
-                </div>
-              </div>
-              <div className="summary-item">
-                <div className="summary-icon status">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                  </svg>
-                </div>
-                <div className="summary-details">
-                  <span className="summary-label">Status</span>
-                  <span className="summary-value">{todaySummary.status}</span>
-                </div>
-              </div>
+          <TimeEntryCard title="Resumo do Dia">
+            <div className="space-y-2">
+              <SummaryItem
+                icon={<Clock size={14} />}
+                label="Horas Trabalhadas"
+                value={todaySummary.hoursWorked}
+                iconColor="text-blue-500"
+              />
+              <SummaryItem
+                icon={<Coffee size={14} />}
+                label="Tempo de Intervalo"
+                value={todaySummary.breakTime}
+                iconColor="text-amber-500"
+              />
+              <SummaryItem
+                icon={<CheckCircle size={14} />}
+                label="Status"
+                value={todaySummary.status}
+                iconColor="text-green-500"
+              />
             </div>
-          </Card>
+          </TimeEntryCard>
 
           {/* Card de ações de registro */}
-          <Card title="Registrar Ponto" className="time-entry-actions">
-            {/* Mostrar status da geolocalização */}
-            <motion.div
-              className={`geolocation-status ${geolocation.loading ? "loading" : geolocation.error ? "error" : "success"}`}
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              transition={{ delay: 0.2 }}
-            >
-              {geolocation.loading ? (
-                <>
-                  <motion.div
-                    className="geo-icon loading"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <line x1="12" y1="2" x2="12" y2="6"></line>
-                      <line x1="12" y1="18" x2="12" y2="22"></line>
-                      <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
-                      <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
-                      <line x1="2" y1="12" x2="6" y2="12"></line>
-                      <line x1="18" y1="12" x2="22" y2="12"></line>
-                      <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
-                      <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
-                    </svg>
-                  </motion.div>
-                  <p>Obtendo sua localização...</p>
-                </>
-              ) : geolocation.error ? (
-                <>
-                  <div className="geo-icon error">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="12" y1="8" x2="12" y2="12"></line>
-                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                    </svg>
-                  </div>
-                  <p>{geolocation.error}</p>
-                </>
+          <TimeEntryCard
+            title="Registrar Ponto"
+            className="sm:col-span-2"
+            rightElement={
+              geolocation.error ? (
+                <span className="text-xs text-red-500 flex items-center">
+                  <AlertCircle size={12} className="mr-1" />
+                  Erro de localização
+                </span>
+              ) : geolocation.loading ? (
+                <span className="text-xs text-blue-500 flex items-center">
+                  <Loader2 size={12} className="mr-1 animate-spin" />
+                  Localizando...
+                </span>
               ) : (
-                <>
-                  <motion.div
-                    className="geo-icon success"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 10 }}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                      <circle cx="12" cy="10" r="3"></circle>
-                    </svg>
-                  </motion.div>
-                  <p>Localização obtida (precisão: {Math.round(geolocation.accuracy || 0)}m)</p>
-                </>
-              )}
-            </motion.div>
-
-            {/* Exibir endereço */}
+                <span className="text-xs text-green-500 flex items-center">
+                  <MapPin size={12} className="mr-1" />
+                  {Math.round(geolocation.accuracy || 0)}m
+                </span>
+              )
+            }
+          >
+            {/* Exibir endereço de forma compacta */}
             {!geolocation.error && !geolocation.loading && (
-              <motion.div
-                className="address-display"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                transition={{ delay: 0.3 }}
-              >
-                <div className="address-icon">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                  </svg>
-                </div>
-                {addressLoading ? (
-                  <p>Obtendo endereço...</p>
-                ) : (
-                  <p className="address-text">{address || "Endereço não disponível"}</p>
-                )}
-              </motion.div>
+              <div className="mb-2 text-xs text-gray-500 flex items-start">
+                <Home size={12} className="mr-1 mt-0.5 flex-shrink-0" />
+                <span className="line-clamp-1">
+                  {addressLoading ? "Obtendo endereço..." : address || "Endereço não disponível"}
+                </span>
+              </div>
             )}
 
+            {/* Mensagem de erro */}
             <AnimatePresence>
               {geoError && (
                 <motion.div
-                  className="error-message"
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
+                  className="mb-2 p-1.5 bg-red-50 text-red-700 rounded text-xs flex items-center justify-between"
                 >
-                  {geoError}
-                  <motion.button
-                    className="btn-close"
+                  <span>{geoError}</span>
+                  <button
                     onClick={() => setGeoError(null)}
-                    whileHover={{ scale: 1.2, rotate: 90 }}
-                    whileTap={{ scale: 0.9 }}
+                    className="text-red-500 hover:text-red-700 transition-colors"
                   >
-                    ×
-                  </motion.button>
+                    <X size={12} />
+                  </button>
                 </motion.div>
               )}
             </AnimatePresence>
 
+            {/* Botões de ação */}
             {loading ? (
-              <motion.div className="loading-indicator" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <motion.svg
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="12" y1="2" x2="12" y2="6"></line>
-                  <line x1="12" y1="18" x2="12" y2="22"></line>
-                  <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
-                  <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
-                  <line x1="2" y1="12" x2="6" y2="12"></line>
-                  <line x1="18" y1="12" x2="22" y2="12"></line>
-                  <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
-                  <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
-                </motion.svg>
-                <p>Carregando...</p>
-              </motion.div>
+              <div className="flex items-center justify-center py-2">
+                <Loader2 size={18} className="animate-spin mr-2 text-blue-500" />
+                <p className="text-xs text-gray-500">Carregando...</p>
+              </div>
             ) : (
-              <motion.div
-                className="action-buttons"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
+              <div className="flex gap-2">
                 {getNextActionType() === "CLOCK_IN" && (
-                  <Button
-                    variant="primary"
+                  <button
                     onClick={() => initiateTimeEntry("CLOCK_IN")}
                     disabled={geolocation.loading || !!geolocation.error}
-                    fullWidth
-                    icon={
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                        <polyline points="10 17 15 12 10 7"></polyline>
-                        <line x1="15" y1="12" x2="3" y2="12"></line>
-                      </svg>
-                    }
+                    className="flex-1 flex items-center justify-center gap-1 bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    Registrar Entrada
-                  </Button>
+                    <EntryTypeIcon type="CLOCK_IN" className="text-white" size={14} />
+                    <span>Registrar Entrada</span>
+                  </button>
                 )}
 
                 {getNextActionType() === "BREAK_START" && (
-                  <Button
-                    variant="secondary"
+                  <button
                     onClick={() => initiateTimeEntry("BREAK_START")}
                     disabled={geolocation.loading || !!geolocation.error}
-                    fullWidth
-                    icon={
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
-                        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
-                        <line x1="6" y1="1" x2="6" y2="4"></line>
-                        <line x1="10" y1="1" x2="10" y2="4"></line>
-                        <line x1="14" y1="1" x2="14" y2="4"></line>
-                      </svg>
-                    }
+                    className="flex-1 flex items-center justify-center gap-1 bg-amber-500 hover:bg-amber-600 text-white py-2 px-3 rounded text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    Iniciar Intervalo
-                  </Button>
+                    <EntryTypeIcon type="BREAK_START" className="text-white" size={14} />
+                    <span>Iniciar Intervalo</span>
+                  </button>
                 )}
 
                 {getNextActionType() === "BREAK_END" && (
-                  <Button
-                    variant="primary"
+                  <button
                     onClick={() => initiateTimeEntry("BREAK_END")}
                     disabled={geolocation.loading || !!geolocation.error}
-                    fullWidth
-                    icon={
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="23 4 23 10 17 10"></polyline>
-                        <polyline points="1 20 1 14 7 14"></polyline>
-                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                      </svg>
-                    }
+                    className="flex-1 flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    Retornar do Intervalo
-                  </Button>
+                    <EntryTypeIcon type="BREAK_END" className="text-white" size={14} />
+                    <span>Retornar do Intervalo</span>
+                  </button>
                 )}
 
                 {getNextActionType() === "CLOCK_OUT" && (
-                  <Button
-                    variant="danger"
+                  <button
                     onClick={() => initiateTimeEntry("CLOCK_OUT")}
                     disabled={geolocation.loading || !!geolocation.error}
-                    fullWidth
-                    icon={
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                      </svg>
-                    }
+                    className="flex-1 flex items-center justify-center gap-1 bg-red-600 hover:bg-red-700 text-white py-2 px-3 rounded text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    Registrar Saída
-                  </Button>
+                    <EntryTypeIcon type="CLOCK_OUT" className="text-white" size={14} />
+                    <span>Registrar Saída</span>
+                  </button>
                 )}
 
                 {getNextActionType() === null && (
-                  <motion.div
-                    className="day-completed"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                  >
-                    <motion.svg
-                      animate={{
-                        scale: [1, 1.2, 1],
-                        rotate: [0, 10, -10, 0],
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Number.POSITIVE_INFINITY,
-                        repeatType: "reverse",
-                      }}
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    </motion.svg>
-                    <p>Jornada de hoje finalizada!</p>
-                  </motion.div>
+                  <div className="flex-1 flex items-center justify-center py-2 text-green-600 text-xs">
+                    <CheckCircle size={14} className="mr-1" />
+                    <span>Jornada finalizada!</span>
+                  </div>
                 )}
-              </motion.div>
+
+                <button className="flex items-center justify-center p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition-colors">
+                  <FileEdit size={14} />
+                </button>
+              </div>
             )}
-          </Card>
+          </TimeEntryCard>
 
           {/* Card do mapa de localização */}
-          <Card title="Sua Localização" className="location-map">
-            <div className="map-container" ref={mapRef}>
+          <TimeEntryCard title="Localização">
+            <div className="h-32 rounded overflow-hidden" ref={mapRef}>
               {(geolocation.loading || geolocation.error) && (
-                <div className="map-placeholder">
+                <div className="h-full flex items-center justify-center bg-gray-100 rounded">
                   {geolocation.loading ? (
-                    <div className="map-loading">
-                      <motion.svg
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="40"
-                        height="40"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <line x1="12" y1="2" x2="12" y2="6"></line>
-                        <line x1="12" y1="18" x2="12" y2="22"></line>
-                        <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
-                        <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
-                        <line x1="2" y1="12" x2="6" y2="12"></line>
-                        <line x1="18" y1="12" x2="22" y2="12"></line>
-                        <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
-                        <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
-                      </motion.svg>
-                      <p>Carregando mapa...</p>
+                    <div className="text-center">
+                      <Loader2 size={18} className="animate-spin mb-1 mx-auto text-blue-500" />
+                      <p className="text-xs text-gray-500">Carregando mapa...</p>
                     </div>
                   ) : (
-                    <div className="map-error">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="40"
-                        height="40"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="8" x2="12" y2="12"></line>
-                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                      </svg>
-                      <p>Não foi possível carregar o mapa</p>
+                    <div className="text-center p-2">
+                      <AlertCircle size={18} className="mb-1 mx-auto text-red-500" />
+                      <p className="text-xs text-gray-600">Mapa indisponível</p>
                     </div>
                   )}
                 </div>
               )}
             </div>
-          </Card>
+          </TimeEntryCard>
 
           {/* Card de registros de hoje */}
-          <Card title="Registros de Hoje" className="today-entries">
+          <TimeEntryCard
+            title="Registros de Hoje"
+            className="lg:col-span-4"
+            rightElement={
+              <button className="text-xs text-blue-600 hover:text-blue-800 transition-colors">Ver todos</button>
+            }
+          >
             {todayEntries.length === 0 ? (
-              <motion.div
-                className="no-entries"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-              >
-                <motion.svg
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.5 }}
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="40"
-                  height="40"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="8" x2="12" y2="12"></line>
-                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </motion.svg>
-                <p>Nenhum registro hoje</p>
-              </motion.div>
+              <div className="flex items-center justify-center py-3 text-gray-500">
+                <Clock size={16} className="mr-2" />
+                <p className="text-xs">Nenhum registro hoje</p>
+              </div>
             ) : (
-              <motion.ul className="entries-list" variants={container} initial="hidden" animate="show">
-                {todayEntries.map((entry, index) => (
-                  <motion.li
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                {todayEntries.map((entry) => (
+                  <motion.div
                     key={entry.id}
-                    className={`entry-item ${entry.type.toLowerCase()}`}
-                    variants={item}
-                    custom={index}
-                    whileHover={{ x: 5 }}
+                    className="p-2 border border-gray-100 rounded bg-gray-50 flex items-center gap-2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    whileHover={{ backgroundColor: "#f9fafb" }}
+                    transition={{ duration: 0.2 }}
                   >
-                    <div className="entry-icon">{getEntryTypeIcon(entry.type)}</div>
-                    <div className="entry-details">
-                      <span className="entry-type">
-                        {entry.type === "CLOCK_IN" && "Entrada"}
-                        {entry.type === "BREAK_START" && "Início do Intervalo"}
-                        {entry.type === "BREAK_END" && "Fim do Intervalo"}
-                        {entry.type === "CLOCK_OUT" && "Saída"}
-                      </span>
-                      <span className="entry-time">{format(new Date(entry.timestamp), "HH:mm:ss")}</span>
-                      {entry.address && <span className="entry-address">{entry.address}</span>}
+                    <div className={`p-1.5 rounded-full ${getEntryTypeColor(entry.type)}`}>
+                      <EntryTypeIcon type={entry.type} size={12} />
                     </div>
-                    {entry.latitude && entry.longitude && (
-                      <motion.div
-                        className="entry-location"
-                        title={`Lat: ${entry.latitude}, Long: ${entry.longitude}`}
-                        whileHover={{ scale: 1.2 }}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                          <circle cx="12" cy="10" r="3"></circle>
-                        </svg>
-                      </motion.div>
-                    )}
-                  </motion.li>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-medium text-gray-800">{getEntryTypeLabel(entry.type)}</p>
+                        <p className="text-xs text-gray-500 tabular-nums">
+                          {format(new Date(entry.timestamp), "HH:mm")}
+                        </p>
+                      </div>
+                      {entry.address && (
+                        <p className="text-[10px] text-gray-500 truncate">{entry.address.split(",")[0]}</p>
+                      )}
+                    </div>
+                    <button className="text-gray-400 hover:text-gray-600 p-1">
+                      <MoreHorizontal size={12} />
+                    </button>
+                  </motion.div>
                 ))}
-              </motion.ul>
+              </div>
             )}
-          </Card>
-
-          {/* Card de solicitação de ajuste */}
-          <Card title="Solicitar Ajuste" className="adjustment-request">
-            <p>Precisa corrigir algum registro de ponto? Faça uma solicitação de ajuste.</p>
-            <Button
-              variant="primary"
-              icon={
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-              }
-            >
-              Nova Solicitação
-            </Button>
-          </Card>
-        </motion.div>
+          </TimeEntryCard>
+        </div>
 
         {/* Modal de captura de foto */}
         <Modal
@@ -1087,47 +643,57 @@ function EmployeeDashboard() {
               }}
             />
           ) : (
-            <div className="photo-confirmation">
-              <img src={capturedImage || "/placeholder.svg"} alt="Foto capturada" className="captured-image" />
+            <div className="space-y-3">
+              <div className="rounded overflow-hidden border border-gray-200">
+                <img src={capturedImage || "/placeholder.svg"} alt="Foto capturada" className="w-full h-auto" />
+              </div>
 
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Selecione sua localização:</h3>
+              <h3 className="text-xs font-medium text-gray-700">Selecione sua localização:</h3>
 
-              <div className="location-options">
+              <div className="grid grid-cols-3 gap-2">
                 <LocationOption
-                  icon={<Home size={24} />}
+                  icon={<Home size={18} />}
                   label="Casa"
                   isSelected={selectedLocation === "casa"}
                   onClick={() => setSelectedLocation("casa")}
                 />
 
                 <LocationOption
-                  icon={<Building2 size={24} />}
+                  icon={<Building2 size={18} />}
                   label="Escritório"
                   isSelected={selectedLocation === "escritorio"}
                   onClick={() => setSelectedLocation("escritorio")}
                 />
 
                 <LocationOption
-                  icon={<MapPin size={24} />}
+                  icon={<MapPin size={18} />}
                   label="Outros"
                   isSelected={selectedLocation === "outros"}
                   onClick={() => setSelectedLocation("outros")}
                 />
               </div>
 
-              <div className="flex gap-3 mt-4">
-                <Button variant="outline" onClick={() => setCapturedImage(null)} icon={<CameraIcon size={18} />}>
-                  Nova Foto
-                </Button>
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => setCapturedImage(null)}
+                  className="flex items-center justify-center gap-1 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 py-1.5 px-3 rounded text-xs transition-colors"
+                >
+                  <CameraIcon size={14} />
+                  <span>Nova Foto</span>
+                </button>
 
-                <Button variant="primary" onClick={finalizeTimeEntry} disabled={!selectedLocation} fullWidth>
+                <button
+                  onClick={finalizeTimeEntry}
+                  disabled={!selectedLocation}
+                  className={`flex-1 text-white py-1.5 px-3 rounded text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${getActionButtonColor(pendingEntryType)}`}
+                >
                   Confirmar Registro
-                </Button>
+                </button>
               </div>
             </div>
           )}
         </Modal>
-      </motion.div>
+      </div>
     </Layout>
   )
 }

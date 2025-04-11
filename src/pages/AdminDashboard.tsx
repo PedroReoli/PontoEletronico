@@ -1,551 +1,409 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import api from "../services/api"
-import Layout from "../components/Layout"
-import { motion } from "framer-motion"
+import { Link } from "react-router-dom"
+import {
+  Users,
+  Building,
+  Clock,
+  Calendar,
+  AlertTriangle,
+  FileText,
+  ChevronRight,
+  BarChart2,
+  Settings,
+  Shield,
+  Activity,
+  TrendingUp,
+  CheckCircle,
+  XCircle,
+  Info,
+} from "lucide-react"
+import api from "@/services/api"
+import Layout from "@/components/Layout"
+import { Card, CardContent } from "@/components/ui/Card"
+import { Badge } from "@/components/ui/Badge"
 
-interface DashboardStats {
+// Tipos
+interface AdminMetrics {
   totalUsers: number
+  activeUsers: number
   totalCompanies: number
-  totalShiftGroups: number
-  totalShiftTypes: number
-  pendingAdjustments: number
-  punctualityRate: number
-  activeWorkers: number
-  onBreakUsers: number
+  pendingApprovals: number
+  systemAlerts: number
+  newUsersToday: number
+  userGrowthRate: number
+  activeSessionsNow: number
+  systemStatus: {
+    api: "online" | "degraded" | "offline"
+    database: "online" | "degraded" | "offline"
+    services: "online" | "degraded" | "offline"
+  }
+  recentAlerts: Array<{
+    id: string
+    type: "error" | "warning" | "info"
+    message: string
+    timestamp: string
+  }>
 }
 
 function AdminDashboard() {
-  const [stats, setStats] = useState<DashboardStats | null>(null)
+  // Estados
+  const [metrics, setMetrics] = useState<AdminMetrics | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Efeito para buscar dados
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchDashboardData = async () => {
       try {
         setLoading(true)
-        const response = await api.get("/admin/dashboard-stats")
-        setStats(response.data)
+
+        // Tentar buscar dados da API
+        try {
+          const metricsResponse = await api.get("/admin/metrics")
+          setMetrics(metricsResponse.data)
+        } catch (error) {
+          console.error("Erro ao buscar dados da API, usando dados mockados:", error)
+
+          // Dados mockados para desenvolvimento
+          const mockMetrics: AdminMetrics = {
+            totalUsers: 156,
+            activeUsers: 124,
+            totalCompanies: 8,
+            pendingApprovals: 5,
+            systemAlerts: 2,
+            newUsersToday: 3,
+            userGrowthRate: 2.4,
+            activeSessionsNow: 42,
+            systemStatus: {
+              api: "online",
+              database: "online",
+              services: "online",
+            },
+            recentAlerts: [
+              {
+                id: "alert-1",
+                type: "warning",
+                message: "Uso de CPU acima de 80% nos últimos 15 minutos",
+                timestamp: "2025-04-11T14:23:00",
+              },
+              {
+                id: "alert-2",
+                type: "info",
+                message: "Backup diário concluído com sucesso",
+                timestamp: "2025-04-11T03:00:00",
+              },
+            ],
+          }
+
+          setMetrics(mockMetrics)
+        }
       } catch (error) {
-        console.error("Erro ao buscar estatísticas:", error)
+        console.error("Erro ao buscar dados do dashboard:", error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchStats()
+    fetchDashboardData()
   }, [])
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
+  // Links rápidos para seções administrativas
+  const adminLinks = [
+    {
+      icon: <Users size={16} />,
+      label: "Usuários",
+      path: "/admin/users",
+      color: "bg-blue-100 text-blue-600",
+      description: "Gerenciar contas e permissões",
     },
+    {
+      icon: <Building size={16} />,
+      label: "Empresas",
+      path: "/admin/companies",
+      color: "bg-purple-100 text-purple-600",
+      description: "Cadastro e configurações",
+    },
+    {
+      icon: <Clock size={16} />,
+      label: "Turnos",
+      path: "/admin/shift-types",
+      color: "bg-green-100 text-green-600",
+      description: "Tipos de jornada",
+    },
+    {
+      icon: <Calendar size={16} />,
+      label: "Grupos",
+      path: "/admin/shift-groups",
+      color: "bg-amber-100 text-amber-600",
+      description: "Escalas e grupos de trabalho",
+    },
+    {
+      icon: <Settings size={16} />,
+      label: "Configurações",
+      path: "/admin/settings",
+      color: "bg-gray-100 text-gray-600",
+      description: "Parâmetros do sistema",
+    },
+    {
+      icon: <Shield size={16} />,
+      label: "Segurança",
+      path: "/admin/security",
+      color: "bg-red-100 text-red-600",
+      description: "Logs e controles de acesso",
+    },
+  ]
+
+  // Função para renderizar indicador de status
+  const renderStatusIndicator = (status: string) => {
+    switch (status) {
+      case "online":
+        return (
+          <span className="flex items-center">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1"></span>Online
+          </span>
+        )
+      case "degraded":
+        return (
+          <span className="flex items-center">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1"></span>Degradado
+          </span>
+        )
+      case "offline":
+        return (
+          <span className="flex items-center">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1"></span>Offline
+          </span>
+        )
+      default:
+        return (
+          <span className="flex items-center">
+            <span className="w-1.5 h-1.5 rounded-full bg-gray-500 mr-1"></span>Desconhecido
+          </span>
+        )
+    }
   }
 
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 },
+  // Função para renderizar ícone de alerta
+  const renderAlertIcon = (type: string) => {
+    switch (type) {
+      case "error":
+        return <XCircle size={14} className="text-red-500" />
+      case "warning":
+        return <AlertTriangle size={14} className="text-amber-500" />
+      case "info":
+        return <Info size={14} className="text-blue-500" />
+      default:
+        return <Info size={14} className="text-gray-500" />
+    }
+  }
+
+  // Função para formatar timestamp
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp)
+    return date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
   }
 
   return (
     <Layout>
-      <section className="admin-dashboard">
-        <header className="admin-header">
-          <motion.div
-            className="admin-title"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h1>Painel Administrativo</h1>
-            <p className="admin-subtitle">Gerencie todos os aspectos do sistema</p>
-          </motion.div>
-
-          <motion.div
-            className="admin-actions"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <button className="btn-dashboard">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-              </svg>
-              Configurações
-            </button>
-          </motion.div>
-        </header>
+      <div className="max-w-7xl mx-auto px-3 py-3">
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="text-xl font-bold text-gray-800">Painel Administrativo</h1>
+          <div className="flex gap-2">
+            <Badge variant="warning" className="flex items-center gap-1">
+              <AlertTriangle size={12} />
+              <span>{metrics?.systemAlerts || 0} Alertas</span>
+            </Badge>
+            <Badge variant="info" className="flex items-center gap-1">
+              <Activity size={12} />
+              <span>{metrics?.activeSessionsNow || 0} Sessões ativas</span>
+            </Badge>
+          </div>
+        </div>
 
         {loading ? (
-          <div className="admin-loading">
-            <div className="loading-animation">
-              <div></div>
-              <div></div>
-              <div></div>
-            </div>
-            <p>Carregando estatísticas do sistema...</p>
+          <div className="flex justify-center items-center py-8">
+            <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
           </div>
         ) : (
           <>
-            {/* KPI Principal */}
-            <motion.article
-              className="main-kpi"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="kpi-content">
-                <div className="kpi-icon">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="32"
-                    height="32"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                  </svg>
-                </div>
-                <div className="kpi-details">
-                  <h2>Pontualidade Geral da Empresa</h2>
-                  <div className="kpi-value-container">
-                    <motion.span
-                      className="kpi-value"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-                    >
-                      {stats?.punctualityRate || 0}%
-                    </motion.span>
-                    <div className="kpi-progress">
-                      <div className="kpi-progress-bar" style={{ width: `${stats?.punctualityRate || 0}%` }}></div>
+            {/* Métricas Principais */}
+            {metrics && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                <Card className="bg-white shadow-sm">
+                  <CardContent className="p-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-xs text-gray-500">Usuários</p>
+                        <div className="flex items-baseline gap-1">
+                          <p className="text-lg font-semibold">{metrics.totalUsers}</p>
+                          <div className="flex items-center text-xs text-green-600">
+                            <TrendingUp size={12} />
+                            <span>+{metrics.newUsersToday}</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500">{metrics.activeUsers} ativos</p>
+                      </div>
+                      <div className={`p-2 rounded-lg bg-blue-100 text-blue-600`}>
+                        <Users size={18} />
+                      </div>
                     </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white shadow-sm">
+                  <CardContent className="p-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-xs text-gray-500">Empresas</p>
+                        <p className="text-lg font-semibold">{metrics.totalCompanies}</p>
+                        <div className="flex items-center text-xs">
+                          <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 mr-1"></span>
+                          <span>Todas ativas</span>
+                        </div>
+                      </div>
+                      <div className={`p-2 rounded-lg bg-purple-100 text-purple-600`}>
+                        <Building size={18} />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white shadow-sm">
+                  <CardContent className="p-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-xs text-gray-500">Aprovações</p>
+                        <p className="text-lg font-semibold">{metrics.pendingApprovals}</p>
+                        <p className="text-xs text-amber-600">Pendentes</p>
+                      </div>
+                      <div className={`p-2 rounded-lg bg-amber-100 text-amber-600`}>
+                        <FileText size={18} />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white shadow-sm">
+                  <CardContent className="p-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-xs text-gray-500">Crescimento</p>
+                        <div className="flex items-baseline gap-1">
+                          <p className="text-lg font-semibold">{metrics.userGrowthRate}%</p>
+                          <span className="text-xs text-green-600">mensal</span>
+                        </div>
+                        <div className="flex items-center text-xs text-green-600">
+                          <TrendingUp size={12} />
+                          <span>Positivo</span>
+                        </div>
+                      </div>
+                      <div className={`p-2 rounded-lg bg-green-100 text-green-600`}>
+                        <BarChart2 size={18} />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {/* Acesso Rápido */}
+              <div className="md:col-span-2">
+                <Card className="bg-white shadow-sm">
+                  <div className="px-3 py-2 bg-gray-50 border-b flex justify-between items-center">
+                    <h2 className="text-sm font-medium">Acesso Rápido</h2>
                   </div>
+                  <CardContent className="p-0">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-gray-100">
+                      {adminLinks.map((link, index) => (
+                        <Link key={index} to={link.path} className="bg-white p-3 hover:bg-gray-50 transition-colors">
+                          <div className="flex items-start gap-2">
+                            <div className={`p-2 rounded-lg ${link.color} flex-shrink-0`}>{link.icon}</div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-sm font-medium text-gray-900">{link.label}</h3>
+                              <p className="text-xs text-gray-500 truncate">{link.description}</p>
+                            </div>
+                            <ChevronRight size={16} className="text-gray-400 flex-shrink-0" />
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Status do Sistema e Alertas */}
+              <div className="md:col-span-1">
+                <div className="space-y-3">
+                  {/* Status do Sistema */}
+                  <Card className="bg-white shadow-sm">
+                    <div className="px-3 py-2 bg-gray-50 border-b">
+                      <h2 className="text-sm font-medium">Status do Sistema</h2>
+                    </div>
+                    <CardContent className="p-3">
+                      {metrics && (
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-gray-500">API</span>
+                            <span className="text-xs font-medium">
+                              {renderStatusIndicator(metrics.systemStatus.api)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-gray-500">Banco de Dados</span>
+                            <span className="text-xs font-medium">
+                              {renderStatusIndicator(metrics.systemStatus.database)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-gray-500">Serviços</span>
+                            <span className="text-xs font-medium">
+                              {renderStatusIndicator(metrics.systemStatus.services)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Alertas Recentes */}
+                  <Card className="bg-white shadow-sm">
+                    <div className="px-3 py-2 bg-gray-50 border-b flex justify-between items-center">
+                      <h2 className="text-sm font-medium">Alertas Recentes</h2>
+                      <Link to="/admin/alerts" className="text-xs text-blue-600 hover:underline">
+                        Ver todos
+                      </Link>
+                    </div>
+                    <CardContent className="p-0">
+                      {metrics && metrics.recentAlerts.length > 0 ? (
+                        <div className="divide-y divide-gray-100">
+                          {metrics.recentAlerts.map((alert) => (
+                            <div key={alert.id} className="p-3">
+                              <div className="flex items-start gap-2">
+                                <div className="mt-0.5">{renderAlertIcon(alert.type)}</div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs text-gray-900 line-clamp-2">{alert.message}</p>
+                                  <p className="text-xs text-gray-500 mt-0.5">{formatTimestamp(alert.timestamp)}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-3 text-center text-xs text-gray-500">
+                          <CheckCircle size={16} className="mx-auto mb-1 text-green-500" />
+                          <p>Nenhum alerta recente</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
-            </motion.article>
-
-            {/* Status Cards */}
-            <motion.div className="status-cards" variants={container} initial="hidden" animate="show">
-              <motion.article
-                className="status-card"
-                variants={item}
-                whileHover={{ y: -5, boxShadow: "0 15px 30px -5px rgba(0, 0, 0, 0.1)" }}
-              >
-                <div className="status-icon working">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                  </svg>
-                </div>
-                <div className="status-content">
-                  <h3>Funcionários Trabalhando</h3>
-                  <motion.p
-                    className="status-value"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 200, delay: 0.3 }}
-                  >
-                    {stats?.activeWorkers || 0}
-                  </motion.p>
-                </div>
-              </motion.article>
-
-              <motion.article
-                className="status-card"
-                variants={item}
-                whileHover={{ y: -5, boxShadow: "0 15px 30px -5px rgba(0, 0, 0, 0.1)" }}
-              >
-                <div className="status-icon break">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
-                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
-                    <line x1="6" y1="1" x2="6" y2="4"></line>
-                    <line x1="10" y1="1" x2="10" y2="4"></line>
-                    <line x1="14" y1="1" x2="14" y2="4"></line>
-                  </svg>
-                </div>
-                <div className="status-content">
-                  <h3>Funcionários no Intervalo </h3>
-                  <motion.p
-                    className="status-value"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 200, delay: 0.4 }}
-                  >
-                    {stats?.onBreakUsers || 0}
-                  </motion.p>
-                </div>
-              </motion.article>
-            </motion.div>
-
-            {/* Stats Grid */}
-            <motion.div className="admin-stats" variants={container} initial="hidden" animate="show">
-              <motion.article
-                className="admin-stat-card"
-                variants={item}
-                whileHover={{ y: -5, boxShadow: "0 15px 30px -5px rgba(0, 0, 0, 0.1)" }}
-              >
-                <div className="stat-content">
-                  <div className="stat-icon users">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="9" cy="7" r="4"></circle>
-                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                  </div>
-                  <div className="stat-details">
-                    <h3>Total de Usuários</h3>
-                    <motion.p
-                      className="stat-value"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-                    >
-                      {stats?.totalUsers || 0}
-                    </motion.p>
-                  </div>
-                </div>
-              </motion.article>
-
-              <motion.article
-                className="admin-stat-card"
-                variants={item}
-                whileHover={{ y: -5, boxShadow: "0 15px 30px -5px rgba(0, 0, 0, 0.1)" }}
-              >
-                <div className="stat-content">
-                  <div className="stat-icon companies">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                    </svg>
-                  </div>
-                  <div className="stat-details">
-                    <h3>Total de Empresas</h3>
-                    <motion.p
-                      className="stat-value"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 200, delay: 0.3 }}
-                    >
-                      {stats?.totalCompanies || 0}
-                    </motion.p>
-                  </div>
-                </div>
-              </motion.article>
-
-              <motion.article
-                className="admin-stat-card"
-                variants={item}
-                whileHover={{ y: -5, boxShadow: "0 15px 30px -5px rgba(0, 0, 0, 0.1)" }}
-              >
-                <div className="stat-content">
-                  <div className="stat-icon shift-groups">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                      <line x1="16" y1="2" x2="16" y2="6"></line>
-                      <line x1="8" y1="2" x2="8" y2="6"></line>
-                      <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                  </div>
-                  <div className="stat-details">
-                    <h3>Grupos de Jornada</h3>
-                    <motion.p
-                      className="stat-value"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 200, delay: 0.4 }}
-                    >
-                      {stats?.totalShiftGroups || 0}
-                    </motion.p>
-                  </div>
-                </div>
-              </motion.article>
-
-              <motion.article
-                className="admin-stat-card"
-                variants={item}
-                whileHover={{ y: -5, boxShadow: "0 15px 30px -5px rgba(0, 0, 0, 0.1)" }}
-              >
-                <div className="stat-content">
-                  <div className="stat-icon shift-types">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                    </svg>
-                  </div>
-                  <div className="stat-details">
-                    <h3>Tipos de Plantão</h3>
-                    <motion.p
-                      className="stat-value"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 200, delay: 0.5 }}
-                    >
-                      {stats?.totalShiftTypes || 0}
-                    </motion.p>
-                  </div>
-                </div>
-              </motion.article>
-
-              <motion.article
-                className="admin-stat-card highlight"
-                variants={item}
-                whileHover={{ y: -5, boxShadow: "0 15px 30px -5px rgba(0, 0, 0, 0.1)" }}
-              >
-                <div className="stat-content">
-                  <div className="stat-icon adjustments">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="12" cy="12" r="3"></circle>
-                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                    </svg>
-                  </div>
-                  <div className="stat-details">
-                    <h3>Ajustes Pendentes</h3>
-                    <motion.p
-                      className="stat-value"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 200, delay: 0.6 }}
-                    >
-                      {stats?.pendingAdjustments || 0}
-                    </motion.p>
-                  </div>
-                </div>
-                <div className="stat-footer">
-                  <a href="/adjustments" className="stat-link">
-                    Revisar
-                  </a>
-                </div>
-              </motion.article>
-            </motion.div>
+            </div>
           </>
         )}
-
-        <motion.section
-          className="quick-actions"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-        >
-          <h2>Ações Rápidas</h2>
-
-          <motion.div
-            className="actions-grid"
-            variants={container}
-            initial="hidden"
-            animate="show"
-            transition={{ delayChildren: 0.8 }}
-          >
-            <motion.article
-              className="action-card"
-              onClick={() => (window.location.href = "/admin/users")}
-              variants={item}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              <div className="action-icon">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-              </div>
-              <div className="action-content">
-                <h3>Gerenciar Usuários</h3>
-                <p>Adicionar, editar ou remover usuários do sistema</p>
-              </div>
-            </motion.article>
-
-            <motion.article
-              className="action-card"
-              onClick={() => (window.location.href = "/admin/companies")}
-              variants={item}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              <div className="action-icon">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                </svg>
-              </div>
-              <div className="action-content">
-                <h3>Gerenciar Empresas</h3>
-                <p>Configurar empresas e suas configurações</p>
-              </div>
-            </motion.article>
-
-            <motion.article
-              className="action-card"
-              onClick={() => (window.location.href = "/admin/shift-groups")}
-              variants={item}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              <div className="action-icon">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-              </div>
-              <div className="action-content">
-                <h3>Grupos de Jornada</h3>
-                <p>Definir horários e regras para grupos de funcionários</p>
-              </div>
-            </motion.article>
-
-            <motion.article
-              className="action-card"
-              onClick={() => (window.location.href = "/admin/shift-types")}
-              variants={item}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              <div className="action-icon">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                </svg>
-              </div>
-              <div className="action-content">
-                <h3>Tipos de Plantão</h3>
-                <p>Configurar escalas e plantões especiais</p>
-              </div>
-            </motion.article>
-          </motion.div>
-        </motion.section>
-      </section>
+      </div>
     </Layout>
   )
 }

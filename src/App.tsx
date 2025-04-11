@@ -8,6 +8,7 @@ import ForgotPassword from "./pages/ForgotPassword"
 import Dashboard from "./pages/Dashboard"
 import EmployeeDashboard from "./pages/EmployeeDashboard"
 import ManagerDashboard from "./pages/ManagerDashboard"
+import TeamReports from "./pages/TeamReports"
 import AdminDashboard from "./pages/AdminDashboard"
 import UserManagement from "./pages/admin/UserManagement"
 import CompanyManagement from "./pages/admin/CompanyManagement"
@@ -60,6 +61,15 @@ function App() {
         element={
           <ProtectedRoute roles={["MANAGER", "ADMIN"]}>
             <ManagerDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/team-reports"
+        element={
+          <ProtectedRoute roles={["MANAGER", "ADMIN"]}>
+            <TeamReports />
           </ProtectedRoute>
         }
       />

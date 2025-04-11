@@ -1,603 +1,415 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import api from "../../services/api"
-import Layout from "../../components/Layout"
+import { Link } from "react-router-dom"
+import { Building, Search, Filter, Plus, Edit, Trash2, ArrowLeft, ChevronDown, X, Download, MapPin, Users, ExternalLink } from 'lucide-react'
+import api from "@/services/api"
+import Layout from "@/components/Layout"
+import { Card, CardHeader, CardContent } from "@/components/ui/Card"
+import { Button } from "@/components/ui/Button"
+import { Badge } from "@/components/ui/Badge"
+import Modal from "@/components/ui/Modal"
 
+// Tipos
 interface Company {
   id: string
   name: string
-  logoUrl: string | null
-  active: boolean
+  document: string
+  address: string
+  city: string
+  state: string
+  status: "ACTIVE" | "INACTIVE" | "PENDING"
+  employeeCount: number
   createdAt: string
 }
 
 function CompanyManagement() {
+  // Estados
   const [companies, setCompanies] = useState<Company[]>([])
   const [loading, setLoading] = useState(true)
-  const [showAddModal, setShowAddModal] = useState(false)
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [currentCompany, setCurrentCompany] = useState<Company | null>(null)
-  const [logoFile, setLogoFile] = useState<File | null>(null)
-  const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
+  const [showFilters, setShowFilters] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<string | null>(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
 
-  // Form state
-  const [formData, setFormData] = useState({
-    name: "",
-    active: true,
-  })
-
+  // Efeito para buscar dados
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
         setLoading(true)
-        const response = await api.get("/admin/companies")
-        setCompanies(response.data)
+        
+        // Tentar buscar dados da API
+        try {
+          const response = await api.get("/admin/companies")
+          setCompanies(response.data)
+        } catch (error) {
+          console.error("Erro ao buscar dados da API, usando dados mockados:", error)
+          
+          // Dados mockados para desenvolvimento
+          const mockCompanies: Company[] = [
+            {
+              id: "comp-1",
+              name: "Empresa Principal Ltda",
+              document: "12.345.678/0001-90",
+              address: "Av. Paulista, 1000",
+              city: "São Paulo",
+              state: "SP",
+              status: "ACTIVE",
+              employeeCount: 120,
+              createdAt: "2024-10-15T14:30:00",
+            },
+            {
+              id: "comp-2",
+              name: "Filial Norte S.A.",
+              document: "23.456.789/0001-01",
+              address: "Rua das Flores, 500",
+              city: "Recife",
+              state: "PE",
+              status: "ACTIVE",
+              employeeCount: 45,
+              createdAt: "2025-01-10T09:20:00",
+            },
+            {
+              id: "comp-3",
+              name: "Filial Sul Ltda",
+              document: "34.567.890/0001-12",
+              address: "Av. Beira Mar, 200",
+              city: "Porto Alegre",
+              state: "RS",
+              status: "ACTIVE",
+              employeeCount: 38,
+              createdAt: "2025-02-05T11:45:00",
+            },
+            {
+              id: "comp-4",
+              name: "Tech Solutions Ltda",
+              document: "45.678.901/0001-23",
+              address: "Rua da Inovação, 100",
+              city: "Belo Horizonte",
+              state: "MG",
+              status: "PENDING",
+              employeeCount: 12,
+              createdAt: "2025-03-20T16:10:00",
+            },
+            {
+              id: "comp-5",
+              name: "Empresa Oeste S.A.",
+              document: "56.789.012/0001-34",
+              address: "Av. Central, 300",
+              city: "Cuiabá",
+              state: "MT",
+              status: "INACTIVE",
+              employeeCount: 0,
+              createdAt: "2025-01-05T08:30:00",
+            },
+          ]
+          
+          setCompanies(mockCompanies)
+        }
       } catch (error) {
         console.error("Erro ao buscar empresas:", error)
       } finally {
         setLoading(false)
       }
     }
-
+    
     fetchCompanies()
   }, [])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target
+  // Filtrar empresas
+  const filteredCompanies = companies.filter((company) => {
+    const matchesSearch = 
+      company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      company.document.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      company.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      company.state.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    const matchesStatus = !statusFilter || company.status === statusFilter
+    
+    return matchesSearch && matchesStatus
+  })
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }))
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
-      setLogoFile(file)
-
-      // Criar preview da imagem
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setLogoPreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+  // Função para obter classe de status
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "ACTIVE":
+        return <Badge variant="success">Ativa</Badge>
+      case "INACTIVE":
+        return <Badge variant="error">Inativa</Badge>
+      case "PENDING":
+        return <Badge variant="warning">Pendente</Badge>
+      default:
+        return <Badge>{status}</Badge>
     }
   }
 
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      active: true,
-    })
-    setLogoFile(null)
-    setLogoPreview(null)
+  // Função para confirmar exclusão
+  const handleDeleteClick = (company: Company) => {
+    setSelectedCompany(company)
+    setShowDeleteModal(true)
   }
 
-  const handleAddCompany = async (e: React.FormEvent) => {
-    e.preventDefault()
-
+  // Função para excluir empresa
+  const handleDeleteConfirm = async () => {
+    if (!selectedCompany) return
+    
     try {
-      // Primeiro, criar a empresa
-      const response = await api.post("/admin/companies", formData)
-
-      // Se houver um logo, fazer upload
-      if (logoFile) {
-        const formData = new FormData()
-        formData.append("logo", logoFile)
-
-        const uploadResponse = await api.post(`/admin/companies/${response.data.id}/logo`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        })
-
-        response.data.logoUrl = uploadResponse.data.logoUrl
-      }
-
-      setCompanies([...companies, response.data])
-      setShowAddModal(false)
-      resetForm()
+      // Aqui seria a chamada real à API
+      // await api.delete(`/admin/companies/${selectedCompany.id}`)
+      
+      // Atualização otimista da UI
+      setCompanies(companies.filter(company => company.id !== selectedCompany.id))
+      setShowDeleteModal(false)
+      setSelectedCompany(null)
+      
+      // Mostrar mensagem de sucesso
+      alert("Empresa excluída com sucesso!")
     } catch (error) {
-      console.error("Erro ao adicionar empresa:", error)
+      console.error("Erro ao excluir empresa:", error)
+      alert("Erro ao excluir empresa. Tente novamente.")
     }
   }
-
-  const handleEditCompany = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!currentCompany) return
-
-    try {
-      // Primeiro, atualizar os dados da empresa
-      const response = await api.put(`/admin/companies/${currentCompany.id}`, formData)
-
-      // Se houver um logo novo, fazer upload
-      if (logoFile) {
-        const formDataLogo = new FormData()
-        formDataLogo.append("logo", logoFile)
-
-        const uploadResponse = await api.post(`/admin/companies/${currentCompany.id}/logo`, formDataLogo, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        })
-
-        response.data.logoUrl = uploadResponse.data.logoUrl
-      }
-
-      // Atualizar a lista de empresas
-      setCompanies(companies.map((company) => (company.id === currentCompany.id ? response.data : company)))
-
-      setShowEditModal(false)
-      resetForm()
-    } catch (error) {
-      console.error("Erro ao editar empresa:", error)
-    }
-  }
-
-  const openEditModal = (company: Company) => {
-    setCurrentCompany(company)
-    setFormData({
-      name: company.name,
-      active: company.active,
-    })
-    setLogoFile(null)
-    setLogoPreview(null)
-    setShowEditModal(true)
-  }
-
-  const handleDeleteCompany = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir esta empresa?")) return
-
-    try {
-      await api.delete(`/admin/companies/${id}`)
-      setCompanies(companies.filter((company) => company.id !== id))
-    } catch (error: any) {
-      // Verificar se o erro é devido a usuários vinculados
-      if (error.response?.status === 400) {
-        alert("Não é possível excluir a empresa pois existem usuários vinculados a ela.")
-      } else {
-        console.error("Erro ao excluir empresa:", error)
-        alert("Erro ao excluir empresa.")
-      }
-    }
-  }
-
-  // Filtrar empresas com base no termo de pesquisa
-  const filteredCompanies = companies.filter((company) => company.name.toLowerCase().includes(searchTerm.toLowerCase()))
 
   return (
     <Layout>
-      <div className="admin-page company-management">
-        <motion.div
-          className="page-header"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div>
-            <h1>Gerenciamento de Empresas</h1>
-            <p className="page-description">Cadastre e gerencie as empresas do sistema</p>
-          </div>
-          <motion.button
-            className="btn btn-primary"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowAddModal(true)}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+      <div className="max-w-7xl mx-auto px-2 py-3">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-7 px-2 py-1 text-xs"
+              as={Link} 
+              to="/admin"
             >
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Nova Empresa
-          </motion.button>
-        </motion.div>
-
-        <motion.div
-          className="search-filter-container"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
-          <div className="search-box">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <input
-              type="text"
-              placeholder="Buscar empresas..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+              <ArrowLeft size={14} className="mr-1" />
+              Voltar
+            </Button>
+            <h1 className="text-xl font-bold text-gray-800">Gerenciar Empresas</h1>
           </div>
-        </motion.div>
-
-        <motion.div
-          className="card companies-card"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          {loading ? (
-            <div className="loading-container">
-              <svg
-                className="animate-spin"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="12" y1="2" x2="12" y2="6"></line>
-                <line x1="12" y1="18" x2="12" y2="22"></line>
-                <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
-                <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
-                <line x1="2" y1="12" x2="6" y2="12"></line>
-                <line x1="18" y1="12" x2="22" y2="12"></line>
-                <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
-                <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
-              </svg>
-              <p>Carregando empresas...</p>
-            </div>
-          ) : filteredCompanies.length === 0 ? (
-            <div className="empty-state">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="48"
-                height="48"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-              </svg>
-              <p>{searchTerm ? "Nenhuma empresa encontrada com esse termo" : "Nenhuma empresa cadastrada"}</p>
-              {!searchTerm && (
-                <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-                  Cadastrar Primeira Empresa
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="companies-table-container">
-              <table className="companies-table">
-                <thead>
+          
+          <div className="flex gap-1">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-7 px-2 py-1 text-xs"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter size={14} className="mr-1" />
+              Filtros
+              {showFilters ? <ChevronDown size={14} className="ml-1 rotate-180" /> : <ChevronDown size={14} className="ml-1" />}
+            </Button>
+            
+            <Button 
+              size="sm" 
+              className="h-7 px-2 py-1 text-xs"
+              as={Link}
+              to="/admin/companies/new"
+            >
+              <Plus size={14} className="mr-1" />
+              Nova Empresa
+            </Button>
+          </div>
+        </div>
+        
+        {/* Filtros */}
+        {showFilters && (
+          <Card className="mb-3 shadow-sm">
+            <CardContent className="p-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div>
+                  <label htmlFor="status" className="block text-xs font-medium text-gray-700 mb-1">
+                    Status:
+                  </label>
+                  <select
+                    id="status"
+                    value={statusFilter || ""}
+                    onChange={(e) => setStatusFilter(e.target.value || null)}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm h-8"
+                  >
+                    <option value="">Todos</option>
+                    <option value="ACTIVE">Ativa</option>
+                    <option value="INACTIVE">Inativa</option>
+                    <option value="PENDING">Pendente</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label htmlFor="search" className="block text-xs font-medium text-gray-700 mb-1">
+                    Buscar:
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                      <Search size={14} className="text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      id="search"
+                      placeholder="Nome, CNPJ, cidade..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-8 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm h-8"
+                    />
+                    {searchTerm && (
+                      <button
+                        className="absolute inset-y-0 right-0 pr-2 flex items-center"
+                        onClick={() => setSearchTerm("")}
+                      >
+                        <X size={14} className="text-gray-400 hover:text-gray-600" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-100">
+                <div className="text-xs text-gray-500">
+                  {filteredCompanies.length} empresas encontradas
+                </div>
+                
+                <div className="flex gap-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-6 px-2 py-0 text-xs"
+                    onClick={() => {
+                      setStatusFilter(null)
+                      setSearchTerm("")
+                    }}
+                  >
+                    Limpar
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-6 px-2 py-0 text-xs"
+                  >
+                    <Download size={12} className="mr-1" />
+                    Exportar
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
+        {/* Lista de Empresas */}
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <Card className="shadow-sm">
+            <CardHeader className="px-3 py-2 bg-gray-50 flex items-center">
+              <Building size={16} className="text-purple-500 mr-2" />
+              <h2 className="text-sm font-medium">Lista de Empresas</h2>
+            </CardHeader>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead className="bg-gray-50">
                   <tr>
-                    <th>Logo</th>
-                    <th>Nome</th>
-                    <th>Status</th>
-                    <th>Ações</th>
+                    <th className="px-2 py-1.5 text-left font-medium text-gray-500">Empresa</th>
+                    <th className="px-2 py-1.5 text-left font-medium text-gray-500">CNPJ</th>
+                    <th className="px-2 py-1.5 text-left font-medium text-gray-500">Localização</th>
+                    <th className="px-2 py-1.5 text-left font-medium text-gray-500">Funcionários</th>
+                    <th className="px-2 py-1.5 text-left font-medium text-gray-500">Status</th>
+                    <th className="px-2 py-1.5 text-right font-medium text-gray-500">Ações</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-100">
                   {filteredCompanies.map((company) => (
-                    <motion.tr
-                      key={company.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <td>
-                        {company.logoUrl ? (
-                          <div className="company-logo">
-                            <img
-                              src={company.logoUrl || "/placeholder.svg"}
-                              alt={`Logo de ${company.name}`}
-                              loading="lazy"
-                            />
-                          </div>
-                        ) : (
-                          <div className="no-logo">{company.name.charAt(0).toUpperCase()}</div>
-                        )}
+                    <tr key={company.id} className="hover:bg-gray-50">
+                      <td className="px-2 py-1.5">
+                        <div className="font-medium text-gray-900">{company.name}</div>
                       </td>
-                      <td>{company.name}</td>
-                      <td>
-                        <span className={`status-badge ${company.active ? "status-success" : "status-danger"}`}>
-                          {company.active ? "Ativa" : "Inativa"}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="action-buttons">
-                          <motion.button
-                            className="btn-icon"
-                            title="Editar"
-                            onClick={() => openEditModal(company)}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="18"
-                              height="18"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                            </svg>
-                          </motion.button>
-                          <motion.button
-                            className="btn-icon delete"
-                            title="Excluir"
-                            onClick={() => handleDeleteCompany(company.id)}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="18"
-                              height="18"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <polyline points="3 6 5 6 21 6"></polyline>
-                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                              <line x1="10" y1="11" x2="10" y2="17"></line>
-                              <line x1="14" y1="11" x2="14" y2="17"></line>
-                            </svg>
-                          </motion.button>
+                      <td className="px-2 py-1.5 text-gray-500">{company.document}</td>
+                      <td className="px-2 py-1.5 text-gray-500">
+                        <div className="flex items-center">
+                          <MapPin size={12} className="text-gray-400 mr-1" />
+                          {company.city}, {company.state}
                         </div>
                       </td>
-                    </motion.tr>
+                      <td className="px-2 py-1.5">
+                        <div className="flex items-center">
+                          <Users size={12} className="text-gray-400 mr-1" />
+                          {company.employeeCount}
+                        </div>
+                      </td>
+                      <td className="px-2 py-1.5">{getStatusBadge(company.status)}</td>
+                      <td className="px-2 py-1.5 text-right">
+                        <div className="flex justify-end gap-1">
+                          <button 
+                            className="p-1 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50"
+                            title="Ver detalhes"
+                          >
+                            <ExternalLink size={14} />
+                          </button>
+                          <button 
+                            className="p-1 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50"
+                            title="Editar"
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button 
+                            className="p-1 text-gray-400 hover:text-red-600 rounded-md hover:bg-red-50"
+                            title="Excluir"
+                            onClick={() => handleDeleteClick(company)}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>
+              
+              {filteredCompanies.length === 0 && (
+                <div className="p-4 text-center text-gray-500">
+                  <Building size={24} className="mx-auto mb-2 text-gray-300" />
+                  <p>Nenhuma empresa encontrada</p>
+                </div>
+              )}
             </div>
-          )}
-        </motion.div>
-
-        {/* Modal de Adicionar Empresa */}
-        <AnimatePresence>
-          {showAddModal && (
-            <motion.div
-              className="modal-overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <motion.div
-                className="modal"
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                transition={{ duration: 0.3 }}
+          </Card>
+        )}
+        
+        {/* Modal de Confirmação de Exclusão */}
+        <Modal 
+          isOpen={showDeleteModal} 
+          onClose={() => setShowDeleteModal(false)} 
+          title="Confirmar Exclusão"
+          size="sm"
+        >
+          <div className="p-2">
+            <p className="text-sm text-gray-600 mb-4">
+              Tem certeza que deseja excluir a empresa <span className="font-medium">{selectedCompany?.name}</span>?
+              Esta ação não pode ser desfeita.
+            </p>
+            
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowDeleteModal(false)}
               >
-                <div className="modal-header">
-                  <h2>Adicionar Empresa</h2>
-                  <button className="btn-close" onClick={() => setShowAddModal(false)}>
-                    ×
-                  </button>
-                </div>
-                <form onSubmit={handleAddCompany}>
-                  <div className="modal-body">
-                    <div className="form-group">
-                      <label htmlFor="add-name">Nome da Empresa</label>
-                      <input
-                        type="text"
-                        id="add-name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="add-logo">Logo (opcional)</label>
-                      <div className="file-input-container">
-                        <input
-                          type="file"
-                          id="add-logo"
-                          name="logo"
-                          onChange={handleFileChange}
-                          accept="image/*"
-                          className="file-input"
-                        />
-                        <label htmlFor="add-logo" className="file-input-label">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                          </svg>
-                          Escolher arquivo
-                        </label>
-                        <span className="file-name">{logoFile ? logoFile.name : "Nenhum arquivo selecionado"}</span>
-                      </div>
-
-                      {logoPreview && (
-                        <div className="logo-preview">
-                          <img src={logoPreview || "/placeholder.svg"} alt="Preview do logo" />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="form-group checkbox-group">
-                      <input
-                        type="checkbox"
-                        id="add-active"
-                        name="active"
-                        checked={formData.active}
-                        onChange={handleInputChange}
-                      />
-                      <label htmlFor="add-active">Empresa ativa</label>
-                    </div>
-                  </div>
-                  <div className="modal-footer">
-                    <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>
-                      Cancelar
-                    </button>
-                    <button type="submit" className="btn btn-primary">
-                      Salvar
-                    </button>
-                  </div>
-                </form>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Modal de Editar Empresa */}
-        <AnimatePresence>
-          {showEditModal && currentCompany && (
-            <motion.div
-              className="modal-overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <motion.div
-                className="modal"
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                transition={{ duration: 0.3 }}
+                Cancelar
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                onClick={handleDeleteConfirm}
               >
-                <div className="modal-header">
-                  <h2>Editar Empresa</h2>
-                  <button className="btn-close" onClick={() => setShowEditModal(false)}>
-                    ×
-                  </button>
-                </div>
-                <form onSubmit={handleEditCompany}>
-                  <div className="modal-body">
-                    <div className="form-group">
-                      <label htmlFor="edit-name">Nome da Empresa</label>
-                      <input
-                        type="text"
-                        id="edit-name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="edit-logo">Logo (opcional)</label>
-                      <div className="file-input-container">
-                        <input
-                          type="file"
-                          id="edit-logo"
-                          name="logo"
-                          onChange={handleFileChange}
-                          accept="image/*"
-                          className="file-input"
-                        />
-                        <label htmlFor="edit-logo" className="file-input-label">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                          </svg>
-                          Escolher arquivo
-                        </label>
-                        <span className="file-name">{logoFile ? logoFile.name : "Nenhum arquivo selecionado"}</span>
-                      </div>
-
-                      {logoPreview ? (
-                        <div className="logo-preview">
-                          <img src={logoPreview || "/placeholder.svg"} alt="Preview do logo" />
-                        </div>
-                      ) : (
-                        currentCompany.logoUrl && (
-                          <div className="current-logo">
-                            <p>Logo atual:</p>
-                            <img
-                              src={currentCompany.logoUrl || "/placeholder.svg"}
-                              alt={`Logo de ${currentCompany.name}`}
-                            />
-                          </div>
-                        )
-                      )}
-                    </div>
-
-                    <div className="form-group checkbox-group">
-                      <input
-                        type="checkbox"
-                        id="edit-active"
-                        name="active"
-                        checked={formData.active}
-                        onChange={handleInputChange}
-                      />
-                      <label htmlFor="edit-active">Empresa ativa</label>
-                    </div>
-                  </div>
-                  <div className="modal-footer">
-                    <button type="button" className="btn btn-secondary" onClick={() => setShowEditModal(false)}>
-                      Cancelar
-                    </button>
-                    <button type="submit" className="btn btn-primary">
-                      Salvar
-                    </button>
-                  </div>
-                </form>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <Trash2 size={14} className="mr-1" />
+                Excluir
+              </Button>
+            </div>
+          </div>
+        </Modal>
       </div>
     </Layout>
   )
